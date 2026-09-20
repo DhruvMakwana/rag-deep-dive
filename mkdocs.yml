@@ -96,6 +96,9 @@ extra_javascript:
 
 extra:
   social:
+    - icon: fontawesome/solid/id-badge
+      link: about/
+      name: About
     - icon: fontawesome/brands/github
       link: https://github.com/dhruvmakwana
 
@@ -112,7 +115,7 @@ nav:
       - Corrective RAG (CRAG): corrective-rag.md
       - Agentic RAG: agentic-rag.md
       - Graph RAG: graph-rag.md
-  - Specialized & Alternative Retrieval:
+  - Specialized RAG:
       - Vision-RAG: vision-rag.md
       - Multimodal RAG: multimodal-rag.md
       - Video-RAG: video-rag.md
@@ -128,7 +131,7 @@ nav:
       - Evaluation Metrics: evaluation-metrics.md
       - RAGAS Deep Dive: ragas.md
       - Production Considerations: production-considerations.md
-  - System Design & Case Studies:
+  - Case Studies:
       - case-studies/index.md
       - Notion → turbopuffer: case-studies/notion-turbopuffer.md
       - "Uber: Billion-Scale Vector Search": case-studies/uber-vector-search.md
@@ -153,4 +156,3 @@ nav:
       - Build Naive RAG From Scratch: tutorials/naive-rag-from-scratch.md
       - Build Adaptive RAG From Scratch: tutorials/advanced-rag-from-scratch.md
       - Multi-Document Production RAG: tutorials/multi-doc-production-rag.md
-  - About: about.md
