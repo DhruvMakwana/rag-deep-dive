@@ -1,0 +1,8 @@
+[
+  {"front": "What are the two phases of a naive RAG pipeline?", "back": "Offline (once): chunk → embed → store. Online (per query): embed query → similarity search → top-k → prompt → generate."},
+  {"front": "What makes a RAG pipeline \"naive\" specifically?", "back": "One retrieve-then-generate pass with no loops, no reranking, and no self-checks on retrieval or generation quality."},
+  {"front": "Why must the query and the indexed chunks use the exact same embedding model?", "back": "Similarity scores are only meaningful when both vectors live in the same embedding space — mixing models makes the scores meaningless, even if both models seem similar in quality."},
+  {"front": "Name two of naive RAG's five core failure modes.", "back": "Any two of: semantic similarity ≠ relevance, no query understanding, fixed top-k with no reranking, no groundedness check, can't handle multi-part questions."},
+  {"front": "What's the cheapest upgrade path from naive RAG for most of its failure modes?", "back": "Advanced RAG (pre-retrieval and post-retrieval techniques) — it directly targets naive RAG's specific weak points without a full architecture change."},
+  {"front": "When is naive RAG actually the right choice?", "back": "Small, clean, well-scoped knowledge bases with low-stakes lookups, or prototyping — not for any production system needing reliability."}
+]

@@ -1,0 +1,29 @@
+# GitHub Copilot: A Code-Native Embedding Model Built to Find Its Own Near-Misses
+
+GitHub Copilot's Chat, Agent, Edit, and Ask modes all depend on the same underlying capability: pulling the right functions, tests, and documentation out of a repository to ground a completion or an answer. That retrieval step is the difference between a suggestion that understands the codebase and one that pattern-matches on syntax alone. In 2025 GitHub shipped a new embedding model built specifically for code-and-docs retrieval, and the engineering writeups behind it are unusually explicit about what actually moved the needle — which makes this a useful case study in how retrieval quality is won or lost at the margins, not on the easy cases.
+
+## The problem
+
+Plain lexical matching over a codebase misses intent constantly, especially across languages: a query about "retry logic" won't lexically match a function called `backoff_with_jitter`, and a Python snippet's intent often has a near-identical counterpart in a C# file that shares no keywords at all. Copilot needed retrieval that could generalize across this gap, across every language in a polyglot repo, while still running inside the latency budget of an IDE completion — not a batch search job.
+
+## What they built, and why
+
+Copilot's context pipeline assembles a prompt from three sources: the current file, all of the developer's currently open editor tabs (the "neighboring tabs" technique), and a vector database of embeddings built from the rest of the repository. A series of selection algorithms then prioritizes and filters candidate snippets from these sources before they're assembled into the final prompt sent to the model. A separate, smaller "contextual filter model" sits in front of the main model and decides whether a suggestion is even worth generating, gating expensive completions before they run.
+
+Two other architectural choices matter as much as the retrieval model itself. First, **Fill-in-the-Middle (FIM)**: rather than conditioning only on everything to the left of the cursor, the model conditions on both the prefix and the suffix surrounding it. That's what makes mid-function edits possible — inserting a parameter into an existing function signature, say — instead of Copilot being useful only at the end of a file where there's nothing after the cursor to account for.
+
+Second, and the centerpiece of the 2025 release, is the new embedding model itself, trained with three techniques stacked together. It uses **contrastive learning with an InfoNCE loss** to pull semantically related code and documentation together in embedding space while pushing unrelated pairs apart. It uses **Matryoshka Representation Learning**, which trains embeddings so that a truncated prefix of the full vector is still a valid, usable embedding — letting GitHub deploy smaller embedding sizes on latency- or memory-constrained clients without training a separate model for each size. And it deliberately mines **hard negatives**: code that is nearly correct but subtly wrong, sourced from both public GitHub repositories and internal codebases, with LLMs used to surface the trickiest near-misses at scale. GitHub's own stated rationale is direct: most retrieval failures come from these near-misses, not from results that are obviously unrelated. A model that's never trained to distinguish "correct" from "looks correct but isn't" will keep making exactly that mistake in production, no matter how good it looks on a benchmark built from easy negatives.
+
+The training data mix was disclosed as Python 36.7%, Java 19.0%, C++ 13.8%, JavaScript/TypeScript 8.9%, C# 4.6%, and other languages 17.0% — reflecting the actual language distribution Copilot needs to serve well, not an idealized balance. Evaluation was deliberately spread across four different benchmark types — natural-language-to-code, code-to-natural-language summarization, code-to-code similarity, and bug-fix retrieval — because GitHub found that scoring well on any single benchmark type hid real failure modes that only showed up on the others.
+
+## The numbers
+
+The new embedding model delivered a **+37.6% relative lift in retrieval quality** across GitHub's benchmark suite, with the average score moving from **0.362 to 0.498**. That retrieval improvement translated directly into acceptance behavior: code-acceptance ratio rose **+110.7% for C#** and **+113.1% for Java** from the embedding model change alone. On efficiency, the new model achieved roughly **2x embedding throughput** and an **~8x smaller index memory footprint** compared to the prior model — a substantial win given that embeddings for an entire repository have to live somewhere affordable to query at IDE speed. Separately, the neighboring-tabs context technique produced a **+5% relative gain in suggestion acceptance**, and FIM produced **+10%**, with GitHub noting both gains came without added latency, achieved through caching.
+
+!!! success "The lesson"
+    Retrieval quality bottlenecks on hard negatives — near-correct-but-wrong results — not on easy ones. An evaluation suite that only tests "relevant vs. totally unrelated" is structurally blind to the failure mode that actually matters in production, which is why GitHub built hard-negative mining directly into training rather than only into evaluation. The second lesson is just as transferable: once a retrieval system has to run inside a completion-latency budget, throughput and index memory footprint are first-class design constraints from the start, not something to optimize after accuracy is "done."
+
+## Sources
+
+- [GitHub: Copilot's new embedding model for VS Code](https://github.blog/news-insights/product-news/copilot-new-embedding-model-vs-code/)
+- [GitHub: How GitHub Copilot is getting better at understanding your code](https://github.blog/ai-and-ml/github-copilot/how-github-copilot-is-getting-better-at-understanding-your-code/)

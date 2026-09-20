@@ -1,0 +1,10 @@
+[
+  {"front": "What does CAG stand for and what does it skip entirely?", "back": "Cache-Augmented Generation — it skips retrieval entirely, loading the whole knowledge base into context when it's small enough and doesn't change often."},
+  {"front": "What's the key distinction between \"fresh\" and \"cached\" in this page's terminology?", "back": "Fresh = sending the whole document every call with no caching (just long-context stuffing); cached = the same content but reusing the same processed prefix across queries via a cache breakpoint. Reuse, not context size, is what makes it CAG."},
+  {"front": "What are the three pricing multipliers for prompt caching mentioned on this page?", "back": "Cache reads at 0.1x the base input price, cache writes at 1.25x, and no caching (fresh) at 1.0x."},
+  {"front": "What cost reduction did CAG achieve in the two measured runs?", "back": "84.3% and 85.5% total cost reduction versus resending the full ~15,125-token document fresh on every call."},
+  {"front": "Did CAG reliably reduce latency in this page's measurement?", "back": "No — the delta ranged from +13.1% (cached slower) to -4.8% (cached faster) across two runs, essentially noise, despite Anthropic's marketing claim of up to 85% latency reduction."},
+  {"front": "Why didn't caching's latency benefit show up at ~15K tokens, per this page's explanation?", "back": "Network round-trip time and output generation dominate total wall-clock time at that document size, so the prefill compute that caching actually saves is only a small fraction of total latency."},
+  {"front": "What is \"RAG over CAG\" and when is it used?", "back": "A hybrid pattern for multiple distinct documents — cache each document separately, then use a lightweight router (an embedding comparison or small classifier) to pick which document's precomputed cache to load per query."},
+  {"front": "What real limitation does \"RAG over CAG\" have for multi-document questions?", "back": "A question needing two handbooks at once forces the router to either pick just one (incomplete answer) or load both together (may not fit) — not a cleanly solved problem."}
+]

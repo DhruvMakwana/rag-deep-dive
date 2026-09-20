@@ -1,0 +1,10 @@
+[
+  {"front": "What are the two node/edge components of a Graph RAG knowledge graph?", "back": "Entities as nodes, relationships as edges — extracted from chunks as (entity, relationship, entity) triples."},
+  {"front": "How many LLM calls did entity/relationship extraction take on the 92-chunk sample paper, and what did it produce?", "back": "92 LLM calls (one per chunk), producing 605 entities and 819 relationships."},
+  {"front": "What is local search built for, and how does it work?", "back": "Specific relational questions (\"what connects X to Y\") — it entity-links the query to graph nodes by embedding similarity, then traverses outward along edges collecting connected relationships and their source chunks."},
+  {"front": "What is global search built for, and what pattern does it use?", "back": "Broad synthesis questions no single entity or chunk can answer — a map-reduce pattern: each community summary is queried independently (map), then surviving partial answers are combined (reduce)."},
+  {"front": "What real entity-deduplication failure did this page measure?", "back": "\"Encoder\" vs. \"the Encoder stack\" scored 0.833 cosine similarity, just under the 0.88 merge threshold, so they were NOT merged despite being the same entity."},
+  {"front": "How many communities did Louvain community detection find on the 605-entity graph, and what does each community cost?", "back": "70 communities; each gets one additional LLM call to produce a summary — 70 more calls on top of the 92 extraction calls."},
+  {"front": "What is the recurring per-query cost of global search, and what newer approach targets it?", "back": "One LLM call per community, every single query (10+ calls in the measured example) — LazyGraphRAG avoids this by skipping upfront community summarization and filtering relevance lazily at query time."},
+  {"front": "What is Graph RAG's real limitation around choosing local vs. global search?", "back": "In this recipe it's a manual command-line flag, not something the system decides automatically — an automatic router (like Adaptive RAG's) is a natural but unimplemented extension."}
+]

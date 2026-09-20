@@ -1,0 +1,156 @@
+site_name: RAG, Deep Dive
+site_description: A deep-dive reference on Retrieval-Augmented Generation — architectures, chunking, retrieval, evaluation, and production engineering.
+site_author: Dhruv Makwana
+# IMPORTANT: update these two before deploying to GitHub Pages.
+# If this repo is published at github.com/<user>/<repo>, site_url is
+# https://<user>.github.io/<repo>/ (or https://<user>.github.io/ for a user/org page repo).
+site_url: https://dhruvmakwana.github.io/rag-deep-dive/
+repo_url: https://github.com/dhruvmakwana/rag-deep-dive
+repo_name: dhruvmakwana/rag-deep-dive
+edit_uri: ""
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: black
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+    - scheme: default
+      primary: white
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
+
+plugins:
+  - search
+  - tags
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+      url_download: true
+      url_timeout: 10
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/quiz.css
+  - stylesheets/flashcards.css
+
+extra_javascript:
+  - javascripts/quiz.js
+  - javascripts/flashcards.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/dhruvmakwana
+
+nav:
+  - Home: index.md
+  - Revision: revision.md
+  - Foundations:
+      - Naive RAG: naive-rag.md
+      - "Advanced RAG — Pre-retrieval": advanced-rag-pre-retrieval.md
+      - "Advanced RAG — Post-retrieval": advanced-rag-post-retrieval.md
+  - Architectures:
+      - Modular RAG: modular-rag.md
+      - Self-RAG: self-rag.md
+      - Corrective RAG (CRAG): corrective-rag.md
+      - Agentic RAG: agentic-rag.md
+      - Graph RAG: graph-rag.md
+  - Specialized & Alternative Retrieval:
+      - Vision-RAG: vision-rag.md
+      - Multimodal RAG: multimodal-rag.md
+      - Video-RAG: video-rag.md
+      - "CAG (Cache-Augmented Generation)": cag.md
+      - PageIndex: pageindex.md
+  - Retrieval Engineering:
+      - Chunking Strategies: chunking.md
+      - Embedding Model Selection: embedding-models.md
+      - Retrieval Methods: retrieval-methods.md
+      - Vector Databases: vector-databases.md
+  - Evaluation & Production:
+      - Response Quality & Safety: response-quality-safety.md
+      - Evaluation Metrics: evaluation-metrics.md
+      - RAGAS Deep Dive: ragas.md
+      - Production Considerations: production-considerations.md
+  - System Design & Case Studies:
+      - case-studies/index.md
+      - Notion → turbopuffer: case-studies/notion-turbopuffer.md
+      - "Uber: Billion-Scale Vector Search": case-studies/uber-vector-search.md
+      - "Airbnb: IVF over HNSW": case-studies/airbnb-ivf-hnsw.md
+      - "Spotify: Annoy → Voyager": case-studies/spotify-voyager.md
+      - GitHub Copilot's Embedding Model: case-studies/github-copilot-embeddings.md
+      - LinkedIn's GraphRAG: case-studies/linkedin-graphrag.md
+      - "Dropbox Dash: RAG to Agents": case-studies/dropbox-dash.md
+      - Sourcegraph Cody: case-studies/sourcegraph-cody.md
+      - Klarna's AI Assistant: case-studies/klarna-ai-assistant.md
+      - "Uber QueryGPT": case-studies/uber-querygpt.md
+      - Perplexity's Hybrid Search: case-studies/perplexity-search.md
+      - Shopify's Real-Time Search: case-studies/shopify-search.md
+      - "Dust: Tiered Prompt Caching": case-studies/dust-prompt-caching.md
+      - Anthropic's Eval Postmortem: case-studies/anthropic-eval-postmortem.md
+      - Notion's Dual-Track Evals: case-studies/notion-braintrust-evals.md
+      - "EchoLeak: Zero-Click Injection": case-studies/echoleak.md
+      - Constitutional Classifiers: case-studies/constitutional-classifiers.md
+      - "Harvey AI: Document Processing at Scale": case-studies/harvey-document-processing.md
+  - Tutorials & Code:
+      - tutorials/index.md
+      - Build Naive RAG From Scratch: tutorials/naive-rag-from-scratch.md
+      - Build Adaptive RAG From Scratch: tutorials/advanced-rag-from-scratch.md
+      - Multi-Document Production RAG: tutorials/multi-doc-production-rag.md
+  - About: about.md
