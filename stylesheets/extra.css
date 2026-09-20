@@ -1,0 +1,142 @@
+/*
+  Theme tuned to match dhruvmakwana.github.io (the portfolio):
+  bg #0b0d12, surface #151922, border #262c38, text #e8e9ee,
+  accent violet #a78bfa / #7c5cf0, JetBrains Mono + Inter, 14px radius.
+*/
+
+:root {
+  --portfolio-accent: #a78bfa;
+  --portfolio-accent-2: #7c5cf0;
+  --portfolio-accent-soft: rgba(167, 139, 250, 0.12);
+  --portfolio-accent-soft-2: rgba(167, 139, 250, 0.28);
+  --portfolio-radius: 14px;
+}
+
+/* ---------- Dark (slate) palette — primary theme, matches the portfolio ---------- */
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #0b0d12;
+  --md-default-fg-color: #e8e9ee;
+  --md-default-fg-color--light: #9aa1b2;
+  --md-default-fg-color--lighter: #5f6678;
+
+  --md-primary-fg-color: #10131a;
+  --md-primary-bg-color: #e8e9ee;
+
+  --md-accent-fg-color: var(--portfolio-accent);
+  --md-accent-fg-color--transparent: var(--portfolio-accent-soft);
+  --md-accent-bg-color: #0b0d12;
+
+  --md-typeset-color: #e8e9ee;
+  --md-typeset-a-color: var(--portfolio-accent);
+
+  --md-code-bg-color: #151922;
+  --md-code-fg-color: #e8e9ee;
+
+  --md-footer-bg-color: #10131a;
+  --md-footer-bg-color--dark: #0b0d12;
+
+  --md-admonition-bg-color: #151922;
+  --md-typeset-mark-color: var(--portfolio-accent-soft-2);
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: rgba(11, 13, 18, 0.92);
+  border-bottom: 1px solid #262c38;
+  backdrop-filter: blur(8px);
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #10131a;
+  border-bottom: 1px solid #262c38;
+}
+
+[data-md-color-scheme="slate"] .md-nav__link--active,
+[data-md-color-scheme="slate"] .md-nav__link:focus,
+[data-md-color-scheme="slate"] .md-nav__link:hover {
+  color: var(--portfolio-accent);
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: var(--portfolio-accent-2);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  border: 1px solid #262c38;
+  border-radius: var(--portfolio-radius);
+  overflow: hidden;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: #151922;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) tr:hover {
+  background-color: #151922;
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  background-color: #151922;
+}
+
+/* ---------- Light palette — keep it usable, tint the accent to match ---------- */
+[data-md-color-scheme="default"] {
+  --md-accent-fg-color: var(--portfolio-accent-2);
+  --md-typeset-a-color: var(--portfolio-accent-2);
+}
+
+/* ---------- Shared, both schemes ---------- */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.md-typeset code,
+.md-typeset pre,
+.md-typeset kbd {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.md-typeset pre > code {
+  border-radius: 10px;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--portfolio-radius);
+  border-width: 1px;
+}
+
+.md-typeset .admonition.tip,
+.md-typeset .admonition.note {
+  border-color: var(--portfolio-accent-soft-2);
+}
+
+.md-typeset .admonition-title {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.md-button {
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.md-button--primary {
+  background-color: var(--portfolio-accent);
+  border-color: var(--portfolio-accent);
+  color: #0b0d12 !important;
+  font-weight: 700;
+}
+
+.md-button--primary:hover {
+  background-color: var(--portfolio-accent-2);
+  border-color: var(--portfolio-accent-2);
+}
+
+/* Logo / site title, monospace like the portfolio's "dm." mark */
+.md-header__topic:first-child {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}

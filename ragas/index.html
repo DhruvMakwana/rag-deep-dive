@@ -1,0 +1,3029 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deep-dive reference on Retrieval-Augmented Generation — architectures, chunking, retrieval, evaluation, and production engineering.">
+      
+      
+        <meta name="author" content="Dhruv Makwana">
+      
+      
+        <link rel="canonical" href="https://dhruvmakwana.github.io/rag-deep-dive/ragas/">
+      
+      
+        <link rel="prev" href="../evaluation-metrics/">
+      
+      
+        <link rel="next" href="../production-considerations/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>RAGAS Deep Dive - RAG, Deep Dive</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../stylesheets/quiz.css">
+    
+      <link rel="stylesheet" href="../stylesheets/flashcards.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ragas-deep-dive" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="RAG, Deep Dive" class="md-header__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RAG, Deep Dive
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              RAGAS Deep Dive
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../revision/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Revision
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../naive-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Foundations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../modular-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architectures
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../vision-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Specialized RAG
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../chunking/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Retrieval Engineering
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../response-quality-safety/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Evaluation & Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../case-studies/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Case Studies
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials & Code
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RAG, Deep Dive" class="md-nav__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RAG, Deep Dive
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../revision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Revision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Foundations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../naive-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Naive RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-pre-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Pre-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-post-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Post-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architectures
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architectures
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modular-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modular RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrective-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corrective RAG (CRAG)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agentic-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graph-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specialized RAG
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specialized RAG
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vision-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multimodal-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multimodal RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Video-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CAG (Cache-Augmented Generation)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pageindex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PageIndex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Engineering
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Retrieval Engineering
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chunking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chunking Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../embedding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Embedding Model Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../retrieval-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vector-databases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector Databases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation & Production
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evaluation & Production
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../response-quality-safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Response Quality & Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RAGAS Deep Dive
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RAGAS Deep Dive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-four-metrics-precise-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four metrics — precise mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it-naive-rag-pipeline-ragas-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it: naive RAG pipeline + RAGAS scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-does-the-diagnostic-table-hold-up-on-a-real-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured: does the diagnostic table hold up on a real system?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putting-the-four-metrics-together-diagnosing-a-rag-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Putting the four metrics together — diagnosing a RAG system
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beyond-the-core-four-additional-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beyond the core four: additional metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generating-an-eval-set-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an eval set automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-considerations-for-using-ragas-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical considerations for using RAGAS in production
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../production-considerations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Considerations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../case-studies/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Case Studies
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Case Studies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-turbopuffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion → turbopuffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-vector-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber: Billion-Scale Vector Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/airbnb-ivf-hnsw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airbnb: IVF over HNSW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/spotify-voyager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotify: Annoy → Voyager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/github-copilot-embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Copilot's Embedding Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/linkedin-graphrag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinkedIn's GraphRAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dropbox-dash/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dropbox Dash: RAG to Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/sourcegraph-cody/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sourcegraph Cody
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/klarna-ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Klarna's AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-querygpt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber QueryGPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/perplexity-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Perplexity's Hybrid Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/shopify-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopify's Real-Time Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dust-prompt-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust: Tiered Prompt Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/anthropic-eval-postmortem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Anthropic's Eval Postmortem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-braintrust-evals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion's Dual-Track Evals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/echoleak/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EchoLeak: Zero-Click Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/constitutional-classifiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Constitutional Classifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/harvey-document-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Harvey AI: Document Processing at Scale
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials & Code
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_9" id="__nav_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials & Code
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/naive-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Naive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Adaptive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/multi-doc-production-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Document Production RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-four-metrics-precise-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The four metrics — precise mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-it-naive-rag-pipeline-ragas-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running it: naive RAG pipeline + RAGAS scoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-does-the-diagnostic-table-hold-up-on-a-real-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured: does the diagnostic table hold up on a real system?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#putting-the-four-metrics-together-diagnosing-a-rag-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Putting the four metrics together — diagnosing a RAG system
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#beyond-the-core-four-additional-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Beyond the core four: additional metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generating-an-eval-set-automatically" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generating an eval set automatically
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-considerations-for-using-ragas-in-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical considerations for using RAGAS in production
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ragas-deep-dive">RAGAS Deep Dive<a class="headerlink" href="#ragas-deep-dive" title="Permanent link">&para;</a></h1>
+<p>An open-source evaluation framework, not a single metric — a Python library computing a specific set of RAG-tailored metrics, most using an LLM as the underlying judge. RAGAS is a structured, purpose-built application of the LLM-as-judge pattern, specifically for RAG pipelines. This page runs it against a real pipeline's real output, not a curated example, to see whether its headline pitch — that the four core metrics together tell you exactly where a RAG system is failing — actually holds up.</p>
+<div class="admonition note">
+<p class="admonition-title">Scope: ragas ships two parallel evaluation APIs, this page uses both</p>
+<p>Current <code>ragas</code> (0.4.x) has a legacy <code>evaluate()</code> + <code>EvaluationDataset</code> + named-metric-class API — what every existing tutorial shows — and a newer per-sample <code>ragas.metrics.collections</code> + <code>.ascore()</code> API the current docs actually lead with. The legacy path still works (every import just fires a <code>DeprecationWarning</code>), and it's the only one that produces the four-metrics-together diagnostic table this page opens with — the modern collections classes can't be passed to <code>evaluate()</code> at all, since they don't share a base class with what <code>evaluate()</code> expects. Further down, this page also uses the modern collections API for four additional metrics and for synthetic eval-set generation, since neither is available through the legacy path.</p>
+</div>
+<div class="admonition example">
+<p class="admonition-title">Hands-on</p>
+<p>The full pipeline below is runnable: <a href="https://github.com/DhruvMakwana/rag-cookbook/tree/main/ragas-deep-dive"><strong>RAGAS Deep Dive →</strong></a> in the code repo. Needs an Anthropic API key, used both for the naive RAG pipeline's own generation and as RAGAS's judge LLM.</p>
+</div>
+<details class="abstract">
+<summary>TL;DR — quick revision</summary>
+<ul>
+<li><strong>Four metrics, four different pipeline stages</strong>: Faithfulness and Answer Relevancy are generation-side, Context Precision is a ranking signal, Context Recall is a retrieval/indexing signal — the pattern across all four is meant to tell you exactly <em>where</em> to intervene, not just that quality dropped somewhere</li>
+<li><strong>Needs a few version pins and one non-default wrapper flag</strong> — <code>langchain-community==0.3.31</code>, a <code>LangchainEmbeddingsWrapper</code> around a plain HuggingFace embeddings object instead of ragas's own, and <code>bypass_temperature=True</code> on the judge LLM wrapper, since current Claude models don't accept a <code>temperature</code> parameter</li>
+<li><strong>Measured on a real naive RAG pipeline</strong>: aggregate scores of 0.91 faithfulness, 0.86 answer relevancy, 0.63 context precision, 0.88 context recall across the standard 8-question eval set</li>
+<li><strong>The most useful result was the anomaly, not the average</strong>: one question got a factually correct answer, but scored near-zero on faithfulness and context recall — the model answered from its own training data after retrieval missed the actual table row, exactly the failure mode a plain "is the final answer right" check would miss entirely, and the pattern reproduced across separate runs</li>
+<li><strong>Four more metrics are covered beyond the core diagnostic table</strong> — AnswerCorrectness, SemanticSimilarity, FactualCorrectness, and NoiseSensitivity from ragas's modern collections API, plus automatic synthetic eval-set generation via <code>TestsetGenerator</code></li>
+</ul>
+</details>
+<h2 id="the-four-metrics-precise-mechanics">The four metrics — precise mechanics<a class="headerlink" href="#the-four-metrics-precise-mechanics" title="Permanent link">&para;</a></h2>
+<p><strong>Faithfulness.</strong> Does the generated answer only contain claims actually supported by retrieved context? RAGAS breaks the answer into individual atomic claims (via LLM decomposition), then checks each claim against retrieved context individually. Score = supported claims ÷ total claims. Decomposing into claims rather than judging the whole answer at once means a 5-correct-1-unsupported answer gets a graded score, not one binary judgment that loses which specific claim is the problem.</p>
+<p><strong>Answer Relevancy.</strong> Does the generated answer actually address the question asked — independent of whether it's factually correct? Computed by generating several hypothetical questions the answer would be a good response to, then comparing those (by embedding cosine similarity) against the original question. This is deliberately the mirror image of HyDE: comparing question-to-question, not question-to-answer, avoids the same phrasing-asymmetry problem HyDE exists to fix on the retrieval side.</p>
+<p><strong>Context Precision.</strong> Of the chunks actually retrieved, are the relevant ones ranked near the top rather than buried lower? An LLM judges each retrieved chunk's relevance individually, and the metric rewards relevant chunks appearing early in the ranked list — mathematically similar in spirit to how NDCG rewards early-ranked relevance in general information retrieval. A low score with genuinely-relevant chunks somewhere in the results points at reranking, not retrieval recall.</p>
+<p><strong>Context Recall.</strong> Did retrieval capture everything actually needed to answer correctly? This is the one metric that needs a ground-truth reference answer: the reference gets decomposed into claims the same way Faithfulness decomposes the generated answer, and each reference claim is checked against the <em>retrieved context</em> (not the generated answer). A low score means retrieval genuinely failed to find necessary information — a retrieval/indexing problem, not a generation problem, since the information was never in the retrieved set to begin with.</p>
+<h2 id="running-it-naive-rag-pipeline-ragas-scoring">Running it: naive RAG pipeline + RAGAS scoring<a class="headerlink" href="#running-it-naive-rag-pipeline-ragas-scoring" title="Permanent link">&para;</a></h2>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_naive_rag</span><span class="p">(</span><span class="n">question</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">reference</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="sd">"""A real naive RAG call: retrieve top-3 chunks, generate an answer,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="sd">    package it into the shape RAGAS needs -- question, answer, the</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="sd">    retrieved contexts (not just the final answer), and a reference</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="sd">    (ground-truth) answer for the metrics that need one."""</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="kn">import</span><span class="w"> </span><span class="nn">anthropic</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span><span class="p">,</span> <span class="n">util</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"all-MiniLM-L6-v2"</span><span class="p">)</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">chunk_embeddings</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="n">query_embedding</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="n">sims</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">cos_sim</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="n">chunk_embeddings</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">top_k</span> <span class="o">=</span> <span class="n">sims</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)))</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">retrieved_contexts</span> <span class="o">=</span> <span class="p">[</span><span class="n">chunks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">top_k</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">client</span> <span class="o">=</span> <span class="n">anthropic</span><span class="o">.</span><span class="n">Anthropic</span><span class="p">()</span>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">context_block</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">---</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">retrieved_contexts</span><span class="p">)</span>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="n">model</span><span class="o">=</span><span class="s2">"claude-sonnet-5"</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="n">max_tokens</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="n">messages</span><span class="o">=</span><span class="p">[{</span><span class="s2">"role"</span><span class="p">:</span> <span class="s2">"user"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Answer the question using the context below.</span><span class="se">\n\n</span><span class="s2">Context:</span><span class="se">\n</span><span class="si">{</span><span class="n">context_block</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Question: </span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="s2">"</span><span class="p">}],</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="p">)</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">answer</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="n">question</span><span class="p">,</span> <span class="s2">"answer"</span><span class="p">:</span> <span class="n">answer</span><span class="p">,</span> <span class="s2">"retrieved_contexts"</span><span class="p">:</span> <span class="n">retrieved_contexts</span><span class="p">,</span> <span class="s2">"reference"</span><span class="p">:</span> <span class="n">reference</span><span class="p">}</span>
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_ragas_eval</span><span class="p">(</span><span class="n">samples</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="sd">"""Scores real pipeline output with RAGAS's four core metrics.</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="sd">    `samples` is a list of dicts shaped like `run_naive_rag`'s return</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="sd">    value.</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sd">    Setup requirements for this ragas release: embeddings go through</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    `LangchainEmbeddingsWrapper` around a real `langchain-huggingface`</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="sd">    embeddings object, the same pattern used for the judge LLM via</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="sd">    `LangchainLLMWrapper` -- ragas's own `HuggingfaceEmbeddings` wrapper</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sd">    fails pydantic validation on direct instantiation. The judge LLM</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="sd">    wrapper also needs `bypass_temperature=True`, since current Claude</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="sd">    models (Sonnet 5 and later) no longer accept a `temperature`</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="sd">    parameter, which `LangchainLLMWrapper` otherwise sets on the</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="sd">    underlying model before every call by default.</span>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="sd">    """</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">langchain_anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatAnthropic</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">langchain_huggingface</span><span class="w"> </span><span class="kn">import</span> <span class="n">HuggingFaceEmbeddings</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvaluationDataset</span><span class="p">,</span> <span class="n">RunConfig</span><span class="p">,</span> <span class="n">SingleTurnSample</span><span class="p">,</span> <span class="n">evaluate</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainEmbeddingsWrapper</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.llms</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainLLMWrapper</span>
+</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>        <span class="n">Faithfulness</span><span class="p">,</span>
+</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>        <span class="n">LLMContextPrecisionWithReference</span><span class="p">,</span>
+</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>        <span class="n">LLMContextRecall</span><span class="p">,</span>
+</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>        <span class="n">ResponseRelevancy</span><span class="p">,</span>
+</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>    <span class="p">)</span>
+</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>
+</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>    <span class="n">evaluator_llm</span> <span class="o">=</span> <span class="n">LangchainLLMWrapper</span><span class="p">(</span><span class="n">ChatAnthropic</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"claude-sonnet-5"</span><span class="p">),</span> <span class="n">bypass_temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>    <span class="n">evaluator_embeddings</span> <span class="o">=</span> <span class="n">LangchainEmbeddingsWrapper</span><span class="p">(</span><span class="n">HuggingFaceEmbeddings</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"sentence-transformers/all-MiniLM-L6-v2"</span><span class="p">))</span>
+</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>
+</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a>    <span class="n">dataset</span> <span class="o">=</span> <span class="n">EvaluationDataset</span><span class="p">(</span><span class="n">samples</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>        <span class="n">SingleTurnSample</span><span class="p">(</span>
+</span><span id="__span-1-33"><a id="__codelineno-1-33" name="__codelineno-1-33" href="#__codelineno-1-33"></a>            <span class="n">user_input</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">"question"</span><span class="p">],</span>
+</span><span id="__span-1-34"><a id="__codelineno-1-34" name="__codelineno-1-34" href="#__codelineno-1-34"></a>            <span class="n">response</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">"answer"</span><span class="p">],</span>
+</span><span id="__span-1-35"><a id="__codelineno-1-35" name="__codelineno-1-35" href="#__codelineno-1-35"></a>            <span class="n">retrieved_contexts</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">"retrieved_contexts"</span><span class="p">],</span>
+</span><span id="__span-1-36"><a id="__codelineno-1-36" name="__codelineno-1-36" href="#__codelineno-1-36"></a>            <span class="n">reference</span><span class="o">=</span><span class="n">s</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">],</span>
+</span><span id="__span-1-37"><a id="__codelineno-1-37" name="__codelineno-1-37" href="#__codelineno-1-37"></a>        <span class="p">)</span>
+</span><span id="__span-1-38"><a id="__codelineno-1-38" name="__codelineno-1-38" href="#__codelineno-1-38"></a>        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">samples</span>
+</span><span id="__span-1-39"><a id="__codelineno-1-39" name="__codelineno-1-39" href="#__codelineno-1-39"></a>    <span class="p">])</span>
+</span><span id="__span-1-40"><a id="__codelineno-1-40" name="__codelineno-1-40" href="#__codelineno-1-40"></a>
+</span><span id="__span-1-41"><a id="__codelineno-1-41" name="__codelineno-1-41" href="#__codelineno-1-41"></a>    <span class="n">metrics</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-1-42"><a id="__codelineno-1-42" name="__codelineno-1-42" href="#__codelineno-1-42"></a>        <span class="n">Faithfulness</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">evaluator_llm</span><span class="p">),</span>
+</span><span id="__span-1-43"><a id="__codelineno-1-43" name="__codelineno-1-43" href="#__codelineno-1-43"></a>        <span class="n">ResponseRelevancy</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">evaluator_llm</span><span class="p">,</span> <span class="n">embeddings</span><span class="o">=</span><span class="n">evaluator_embeddings</span><span class="p">),</span>
+</span><span id="__span-1-44"><a id="__codelineno-1-44" name="__codelineno-1-44" href="#__codelineno-1-44"></a>        <span class="n">LLMContextPrecisionWithReference</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">evaluator_llm</span><span class="p">),</span>
+</span><span id="__span-1-45"><a id="__codelineno-1-45" name="__codelineno-1-45" href="#__codelineno-1-45"></a>        <span class="n">LLMContextRecall</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">evaluator_llm</span><span class="p">),</span>
+</span><span id="__span-1-46"><a id="__codelineno-1-46" name="__codelineno-1-46" href="#__codelineno-1-46"></a>    <span class="p">]</span>
+</span><span id="__span-1-47"><a id="__codelineno-1-47" name="__codelineno-1-47" href="#__codelineno-1-47"></a>
+</span><span id="__span-1-48"><a id="__codelineno-1-48" name="__codelineno-1-48" href="#__codelineno-1-48"></a>    <span class="c1"># Anthropic's per-minute rate limits are tighter than ragas's 16-worker</span>
+</span><span id="__span-1-49"><a id="__codelineno-1-49" name="__codelineno-1-49" href="#__codelineno-1-49"></a>    <span class="c1"># default assumes.</span>
+</span><span id="__span-1-50"><a id="__codelineno-1-50" name="__codelineno-1-50" href="#__codelineno-1-50"></a>    <span class="k">return</span> <span class="n">evaluate</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="n">metrics</span><span class="p">,</span> <span class="n">run_config</span><span class="o">=</span><span class="n">RunConfig</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">180</span><span class="p">))</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Setup requirements for this ragas release</p>
+<p><code>langchain-community==0.3.31</code> needs pinning — <code>ragas</code>'s own code imports <code>langchain_community.chat_models.vertexai</code>, a module later <code>langchain-community</code> releases removed (moved to a separate <code>langchain-google-vertexai</code> package), and <code>ragas</code> carries no upper pin on it.</p>
+<p>Embeddings go through <code>LangchainEmbeddingsWrapper</code> around a plain <code>langchain-huggingface</code> embeddings object, the same pattern used for the judge LLM via <code>LangchainLLMWrapper</code> — <code>ragas</code>'s own <code>HuggingfaceEmbeddings</code> class fails pydantic validation on direct instantiation in this release.</p>
+<p>The judge LLM wrapper needs <code>bypass_temperature=True</code>. <code>LangchainLLMWrapper</code> sets a <code>temperature</code> value on the underlying model before every call by default, and current Claude models no longer accept that parameter (they use adaptive thinking instead of sampling controls) — <code>bypass_temperature</code> is the wrapper's own documented flag for LLMs like this.</p>
+</div>
+<h2 id="measured-does-the-diagnostic-table-hold-up-on-a-real-system">Measured: does the diagnostic table hold up on a real system?<a class="headerlink" href="#measured-does-the-diagnostic-table-hold-up-on-a-real-system" title="Permanent link">&para;</a></h2>
+<p>Aggregate scores across the standard 8-question eval set used throughout this site:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>faithfulness:                          0.9062
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>answer_relevancy:                      0.8596
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>llm_context_precision_with_reference:  0.6250
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>context_recall:                        0.8750
+</span></code></pre></div>
+<h2 id="putting-the-four-metrics-together-diagnosing-a-rag-system">Putting the four metrics together — diagnosing a RAG system<a class="headerlink" href="#putting-the-four-metrics-together-diagnosing-a-rag-system" title="Permanent link">&para;</a></h2>
+<p>The four metrics map to different pipeline stages, so their pattern tells you where to intervene:</p>
+<table>
+<thead>
+<tr>
+<th>Faithfulness</th>
+<th>Answer Relevancy</th>
+<th>Context Precision</th>
+<th>Context Recall</th>
+<th>Diagnosis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>—</td>
+<td>—</td>
+<td>High</td>
+<td>Generation is hallucinating or ignoring good context — a generation/prompting problem</td>
+</tr>
+<tr>
+<td>—</td>
+<td>Low</td>
+<td>—</td>
+<td>—</td>
+<td>Answer doesn't address the question asked — a generation/prompting problem (wrong sub-question, drifting)</td>
+</tr>
+<tr>
+<td>High</td>
+<td>High</td>
+<td>Low</td>
+<td>High</td>
+<td>Right info retrieved but ranked poorly — a reranking problem</td>
+</tr>
+<tr>
+<td>High</td>
+<td>High</td>
+<td>—</td>
+<td>Low</td>
+<td>Necessary info not retrieved at all — a retrieval/indexing problem</td>
+</tr>
+<tr>
+<td>High</td>
+<td>High</td>
+<td>High</td>
+<td>High</td>
+<td>System working well across the whole pipeline</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition success">
+<p class="admonition-title">A factually correct answer with near-zero grounding</p>
+<p>Asked <em>"What BLEU score did they get on English-to-German translation?"</em>, the naive RAG pipeline answered <em>"the Transformer model achieved a BLEU score of 28.4"</em> — factually correct, 28.4 is the real number. But that question has repeatedly scored near-zero on faithfulness, context precision, and context recall across separate runs of this pipeline (0.167/0.0/0.0 in one run, 0.25/0.0/0.0 in another). A <code>context_recall</code> of 0.0 means the retrieved context didn't actually support the reference claim; in the first run, checking the actual top-3 retrieved chunks confirmed exactly why — one chunk was the results table cut off right before the Transformer's own rows appear, and the other two both discussed the <em>English-to-French</em> numbers (41.0, 41.8) from a different part of the paper. None of the three retrieved chunks contained "28.4" at all. Retrieval genuinely missed the right table row, both times. The model answered correctly anyway — from its own training data on this well-known paper, not from what was actually retrieved.</p>
+<p>This is the diagnostic table's "High-looking answer, but check faithfulness and recall before trusting it" case in the wild, and it isn't a one-off fluke: a factually right answer with near-zero grounding in what was actually retrieved, which a simple "is the final answer correct" check would have missed completely both times. It's also a real, measured argument for why Faithfulness and Context Recall exist as separate metrics from plain answer accuracy — accuracy alone would have marked this a pass on both runs.</p>
+</div>
+<h2 id="beyond-the-core-four-additional-metrics">Beyond the core four: additional metrics<a class="headerlink" href="#beyond-the-core-four-additional-metrics" title="Permanent link">&para;</a></h2>
+<p><code>ragas.metrics.collections</code> — the modern per-sample API the scope note above describes — ships a much larger catalog than the four-metric diagnostic table: classic NLP metrics (<code>BleuScore</code>, <code>RougeScore</code>), semantic and factual checks (<code>SemanticSimilarity</code>, <code>FactualCorrectness</code>, <code>AnswerCorrectness</code>), <code>NoiseSensitivity</code>, <code>ContextEntityRecall</code>, rubric-based custom metrics, and agentic-workflow metrics (<code>ToolCallAccuracy</code>, <code>TopicAdherence</code>, goal-accuracy variants) for systems this page doesn't cover. Four of these — the ones with the most direct overlap with the core four — are measured here against the same 8-question eval set:</p>
+<ul>
+<li><strong>AnswerCorrectness</strong> — a weighted blend of factual correctness and semantic similarity against the reference answer.</li>
+<li><strong>SemanticSimilarity</strong> — embedding cosine similarity between generated answer and reference, on its own.</li>
+<li><strong>FactualCorrectness</strong> — decomposes both answer and reference into claims and checks them against each other via NLI, independent of retrieved context.</li>
+<li><strong>NoiseSensitivity</strong> — how much an answer's correctness degrades when the retrieved context contains irrelevant ("noisy") chunks alongside relevant ones.</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">run_extended_metrics</span><span class="p">(</span><span class="n">sample</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">judge_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"claude-sonnet-5"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="sd">"""Scores one sample with four metrics from ragas's modern</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="sd">    `ragas.metrics.collections` API -- AnswerCorrectness (a weighted</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="sd">    blend of factual correctness and semantic similarity),</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="sd">    SemanticSimilarity on its own, FactualCorrectness, and</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="sd">    NoiseSensitivity. `sample` needs question/answer/reference/</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="sd">    retrieved_contexts keys, matching `run_naive_rag`'s return shape.</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd">    This API builds its LLM via `llm_factory` + the `instructor`</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="sd">    library rather than LangChain, so `LangchainLLMWrapper`'s</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sd">    `bypass_temperature` flag doesn't apply here -- current Claude</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="sd">    models reject both `temperature` and `top_p`, and this API has no</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="sd">    equivalent constructor flag, so both are removed directly from the</span>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="sd">    constructed LLM's own `model_args` dict. Needs `instructor&gt;=1.17`;</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="sd">    older versions fail to parse a response when the model returns a</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="sd">    ThinkingBlock before its text content.</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="sd">    """</span>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsyncAnthropic</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">HuggingFaceEmbeddings</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.llms</span><span class="w"> </span><span class="kn">import</span> <span class="n">llm_factory</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.metrics.collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">AnswerCorrectness</span><span class="p">,</span> <span class="n">FactualCorrectness</span><span class="p">,</span> <span class="n">NoiseSensitivity</span><span class="p">,</span> <span class="n">SemanticSimilarity</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">make_judge_llm</span><span class="p">():</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>        <span class="n">llm</span> <span class="o">=</span> <span class="n">llm_factory</span><span class="p">(</span><span class="n">judge_model</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="s2">"anthropic"</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">AsyncAnthropic</span><span class="p">())</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>        <span class="k">del</span> <span class="n">llm</span><span class="o">.</span><span class="n">model_args</span><span class="p">[</span><span class="s2">"temperature"</span><span class="p">]</span>
+</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>        <span class="k">del</span> <span class="n">llm</span><span class="o">.</span><span class="n">model_args</span><span class="p">[</span><span class="s2">"top_p"</span><span class="p">]</span>
+</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>        <span class="k">return</span> <span class="n">llm</span>
+</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>
+</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>    <span class="n">embeddings</span> <span class="o">=</span> <span class="n">HuggingFaceEmbeddings</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"sentence-transformers/all-MiniLM-L6-v2"</span><span class="p">,</span> <span class="n">use_api</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>
+</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>    <span class="n">correctness</span> <span class="o">=</span> <span class="n">AnswerCorrectness</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">make_judge_llm</span><span class="p">(),</span> <span class="n">embeddings</span><span class="o">=</span><span class="n">embeddings</span><span class="p">)</span>
+</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a>    <span class="n">similarity</span> <span class="o">=</span> <span class="n">SemanticSimilarity</span><span class="p">(</span><span class="n">embeddings</span><span class="o">=</span><span class="n">embeddings</span><span class="p">)</span>
+</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>    <span class="n">factual</span> <span class="o">=</span> <span class="n">FactualCorrectness</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">make_judge_llm</span><span class="p">())</span>
+</span><span id="__span-3-34"><a id="__codelineno-3-34" name="__codelineno-3-34" href="#__codelineno-3-34"></a>    <span class="n">noise</span> <span class="o">=</span> <span class="n">NoiseSensitivity</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">make_judge_llm</span><span class="p">())</span>
+</span><span id="__span-3-35"><a id="__codelineno-3-35" name="__codelineno-3-35" href="#__codelineno-3-35"></a>
+</span><span id="__span-3-36"><a id="__codelineno-3-36" name="__codelineno-3-36" href="#__codelineno-3-36"></a>    <span class="n">answer_correctness</span> <span class="o">=</span> <span class="k">await</span> <span class="n">correctness</span><span class="o">.</span><span class="n">ascore</span><span class="p">(</span><span class="n">user_input</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"question"</span><span class="p">],</span> <span class="n">response</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"answer"</span><span class="p">],</span> <span class="n">reference</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">])</span>
+</span><span id="__span-3-37"><a id="__codelineno-3-37" name="__codelineno-3-37" href="#__codelineno-3-37"></a>    <span class="n">semantic_similarity</span> <span class="o">=</span> <span class="k">await</span> <span class="n">similarity</span><span class="o">.</span><span class="n">ascore</span><span class="p">(</span><span class="n">reference</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">],</span> <span class="n">response</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"answer"</span><span class="p">])</span>
+</span><span id="__span-3-38"><a id="__codelineno-3-38" name="__codelineno-3-38" href="#__codelineno-3-38"></a>    <span class="n">factual_correctness</span> <span class="o">=</span> <span class="k">await</span> <span class="n">factual</span><span class="o">.</span><span class="n">ascore</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"answer"</span><span class="p">],</span> <span class="n">reference</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">])</span>
+</span><span id="__span-3-39"><a id="__codelineno-3-39" name="__codelineno-3-39" href="#__codelineno-3-39"></a>    <span class="n">noise_sensitivity</span> <span class="o">=</span> <span class="k">await</span> <span class="n">noise</span><span class="o">.</span><span class="n">ascore</span><span class="p">(</span>
+</span><span id="__span-3-40"><a id="__codelineno-3-40" name="__codelineno-3-40" href="#__codelineno-3-40"></a>        <span class="n">user_input</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"question"</span><span class="p">],</span> <span class="n">response</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"answer"</span><span class="p">],</span> <span class="n">reference</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">],</span> <span class="n">retrieved_contexts</span><span class="o">=</span><span class="n">sample</span><span class="p">[</span><span class="s2">"retrieved_contexts"</span><span class="p">],</span>
+</span><span id="__span-3-41"><a id="__codelineno-3-41" name="__codelineno-3-41" href="#__codelineno-3-41"></a>    <span class="p">)</span>
+</span><span id="__span-3-42"><a id="__codelineno-3-42" name="__codelineno-3-42" href="#__codelineno-3-42"></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="__span-3-43"><a id="__codelineno-3-43" name="__codelineno-3-43" href="#__codelineno-3-43"></a>        <span class="s2">"answer_correctness"</span><span class="p">:</span> <span class="n">answer_correctness</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+</span><span id="__span-3-44"><a id="__codelineno-3-44" name="__codelineno-3-44" href="#__codelineno-3-44"></a>        <span class="s2">"semantic_similarity"</span><span class="p">:</span> <span class="n">semantic_similarity</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+</span><span id="__span-3-45"><a id="__codelineno-3-45" name="__codelineno-3-45" href="#__codelineno-3-45"></a>        <span class="s2">"factual_correctness"</span><span class="p">:</span> <span class="n">factual_correctness</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+</span><span id="__span-3-46"><a id="__codelineno-3-46" name="__codelineno-3-46" href="#__codelineno-3-46"></a>        <span class="s2">"noise_sensitivity"</span><span class="p">:</span> <span class="n">noise_sensitivity</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+</span><span id="__span-3-47"><a id="__codelineno-3-47" name="__codelineno-3-47" href="#__codelineno-3-47"></a>    <span class="p">}</span>
+</span></code></pre></div>
+<p>Measured aggregate scores, same 8-question eval set:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>answer_correctness:   0.7238
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>semantic_similarity:  0.7899
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>factual_correctness:  0.4600
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>noise_sensitivity:    0.5089
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">FactualCorrectness is measurably stricter than semantic similarity</p>
+<p>On the "What GPUs was the model trained on?" question, the naive RAG pipeline answered <em>"The model was trained on 8 NVIDIA P100 GPUs"</em> against a reference of <em>"The models were trained on NVIDIA P100 GPUs"</em> — the same fact, phrased slightly differently. <code>SemanticSimilarity</code> scored this pair 0.877, but <code>FactualCorrectness</code> scored it <strong>0.0</strong>. <code>FactualCorrectness</code>'s claim-decomposition-plus-NLI check is stricter about scope and phrasing than embedding similarity, penalizing differences (singular vs. plural framing, an added specific number) a human reader would likely still call factually equivalent. Worth knowing before treating a low <code>FactualCorrectness</code> score alone as proof of an actual factual error, rather than a stricter check flagging a phrasing mismatch.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Setup for the modern collections API</p>
+<p>This API builds its LLM via <code>llm_factory</code> + the <code>instructor</code> library rather than LangChain, so <code>LangchainLLMWrapper</code>'s <code>bypass_temperature</code> flag doesn't apply. Current Claude models reject both <code>temperature</code> and <code>top_p</code>, and this API has no equivalent constructor flag — both need removing directly from the constructed LLM's own <code>model_args</code> dict, as <code>make_modern_judge_llm()</code> above does. Separately, <code>instructor&gt;=1.17</code> is required against Anthropic models specifically — older versions fail to parse a response when the model returns a <code>ThinkingBlock</code> before its text content.</p>
+</div>
+<h2 id="generating-an-eval-set-automatically">Generating an eval set automatically<a class="headerlink" href="#generating-an-eval-set-automatically" title="Permanent link">&para;</a></h2>
+<p>Every measurement on this page needed a hand-written eval set with real reference answers. <code>ragas.testset.TestsetGenerator</code> builds one automatically from source documents instead — useful when a reference eval set doesn't exist yet.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_testset</span><span class="p">(</span><span class="n">document_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">testset_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span> <span class="n">judge_model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"claude-sonnet-5"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">    </span><span class="sd">"""Generates a synthetic eval set (question + reference answer</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="sd">    pairs) directly from a source document, for when there's no</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="sd">    hand-written eval set yet. Uses the legacy LangchainLLMWrapper/</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="sd">    LangchainEmbeddingsWrapper, not the modern collections API, since</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="sd">    TestsetGenerator's constructor expects those wrapper types</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="sd">    specifically. Needs the optional `rapidfuzz` package for its</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sd">    internal relationship-builder transform."""</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">langchain_anthropic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatAnthropic</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.documents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span> <span class="k">as</span> <span class="n">LCDocument</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">langchain_huggingface</span><span class="w"> </span><span class="kn">import</span> <span class="n">HuggingFaceEmbeddings</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainEmbeddingsWrapper</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.llms</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainLLMWrapper</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">ragas.testset</span><span class="w"> </span><span class="kn">import</span> <span class="n">TestsetGenerator</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="n">docs</span> <span class="o">=</span> <span class="p">[</span><span class="n">LCDocument</span><span class="p">(</span><span class="n">page_content</span><span class="o">=</span><span class="n">document_text</span><span class="p">)]</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="n">llm</span> <span class="o">=</span> <span class="n">LangchainLLMWrapper</span><span class="p">(</span><span class="n">ChatAnthropic</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">judge_model</span><span class="p">),</span> <span class="n">bypass_temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>    <span class="n">embeddings</span> <span class="o">=</span> <span class="n">LangchainEmbeddingsWrapper</span><span class="p">(</span><span class="n">HuggingFaceEmbeddings</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"sentence-transformers/all-MiniLM-L6-v2"</span><span class="p">))</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="n">generator</span> <span class="o">=</span> <span class="n">TestsetGenerator</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span> <span class="n">embedding_model</span><span class="o">=</span><span class="n">embeddings</span><span class="p">)</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="k">return</span> <span class="n">generator</span><span class="o">.</span><span class="n">generate_with_langchain_docs</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">testset_size</span><span class="o">=</span><span class="n">testset_size</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Run against the full sample paper, real generated questions include both clean, formal phrasing and a genuine typo-laden variant — <code>TestsetGenerator</code> deliberately varies persona and query style, not just topic:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>"As I examine the foundational contributions behind the Transformer architecture, I am curious to
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>understand precisely what specific innovations Noam Shazeer proposed..."
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>"wat did noam shazer propse in teh transformr paper"
+</span></code></pre></div>
+<p>Both are real generated questions from the same run, about the same underlying content — a genuine argument for synthetic generation producing a more realistic eval set than a hand-written one, which rarely includes deliberately messy phrasing.</p>
+<div class="admonition note">
+<p class="admonition-title">The multi-hop synthesizer needs more cross-document structure than one paper provides</p>
+<p>Every run against this page's sample paper skips the multi-hop synthesizer entirely (<code>No relationships match the provided condition. Cannot form clusters.</code>), even against the full ~40K-character document — a single technical paper doesn't have enough thematic or entity overlap <em>between different sections</em> for the relationship-builder to find valid multi-hop clusters on. All generated questions come from the single-hop synthesizers instead. This isn't a bug; multi-hop generation needs a corpus with genuine cross-document relationships (e.g. multiple related papers or a multi-file knowledge base) to have anything to connect.</p>
+</div>
+<h2 id="practical-considerations-for-using-ragas-in-production">Practical considerations for using RAGAS in production<a class="headerlink" href="#practical-considerations-for-using-ragas-in-production" title="Permanent link">&para;</a></h2>
+<p><strong>LLM choice for the judge matters and costs money.</strong> Most RAGAS metrics use an LLM internally for claim extraction and relevance judgments — cost scales with the number of claims and chunks evaluated, for every eval-set item. Typically run against a curated eval set of dozens to a few hundred examples, not on every live production query in real time.</p>
+<p><strong>Context Recall specifically requires ground-truth reference answers</strong> — a labeled eval set with correct answers, more work to build than the reference-free metrics (Faithfulness, Answer Relevancy, and Context Precision can all run without ground truth, using only the question, retrieved context, and generated answer).</p>
+<p><strong>RAGAS scores are still LLM judgments, not ground truth themselves</strong> — the same caveats as any LLM-as-judge approach (verbosity bias, judge-model quality ceiling) apply. Worth validating against a human-eval sample before trusting scores at scale, same as any other automated metric.</p>
+<p><strong>Use RAGAS for regression testing, not just one-time scoring.</strong> Run against a fixed eval set every time chunking, embedding model, reranker, or prompt changes — turns RAGAS into a CI-style regression test for RAG quality, catching a change that improves one metric while quietly regressing another.</p>
+<h2 id="scenario-check">Scenario Check<a class="headerlink" href="#scenario-check" title="Permanent link">&para;</a></h2>
+<div class="quiz-widget" data-title="Scenario Check: RAGAS">
+<script type="application/json">
+{
+  "questions": [
+    {
+      "scenario": "A team runs RAGAS on their RAG system and finds a specific question scored Faithfulness = 0.17 and Context Recall = 0.0, even though the final generated answer happens to be factually correct.",
+      "question": "Based on this page's own measured example, what does this pattern most likely indicate?",
+      "options": [
+        "Faithfulness and Context Recall must have used a different, weaker judge LLM for this particular question than for the rest of the eval set, causing an anomalously low score unrelated to what was actually retrieved.",
+        "The retrieved context didn't actually contain the information needed to answer the question -- the model likely answered from its own training data/parametric memory rather than from what retrieval actually surfaced, which a plain answer-correctness check would completely miss.",
+        "This combination means the reference answer itself must be wrong, since Context Recall checks the reference's claims against retrieved context and a 0.0 score means those claims aren't actually true.",
+        "Low Context Recall here means the source document itself never contained the specific number needed, since Context Recall measures whether the underlying corpus, not just what was retrieved, has the necessary information."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This page attributes the low scores to a specific, identified cause -- the retrieved chunks genuinely didn't contain the answer (one was cut off right before the relevant table row, the other two covered a different, nearby number) -- not to any inconsistency in which judge model was used; the same judge LLM scores every question in the eval set.",
+        "Correct. This is exactly the real example measured on this page: the top retrieved chunks didn't contain the needed number at all, yet the model still produced the right answer -- almost certainly from prior knowledge about a well-known paper, not from grounding in retrieved context. Faithfulness and Context Recall exist specifically to catch this gap that plain accuracy checking cannot.",
+        "This inverts what Context Recall checks -- it verifies whether the (already correct) reference's claims are supported by what was actually retrieved, not whether the reference itself is true. Here the reference was correct; retrieval simply failed to surface the chunk that would have supported it.",
+        "This page's own example shows the information was present in the corpus the whole time (the correct table row exists on the page) -- what failed was retrieval surfacing it in the top-3, not the corpus lacking it. Context Recall measures what retrieval actually returned, not what the corpus contains overall."
+      ]
+    },
+    {
+      "scenario": "A team's RAGAS results show High Faithfulness, High Answer Relevancy, High Context Recall, but Low Context Precision.",
+      "question": "Per the diagnostic table on this page, what should the team investigate first?",
+      "options": [
+        "The embedding model used for indexing, since a Low Context Precision score with everything else High most directly points at embeddings placing the wrong content close together in vector space.",
+        "Reranking -- the relevant chunks ARE being retrieved (high recall) and the generation is faithful and relevant, but the relevant chunks aren't being ranked near the top, which is specifically what Context Precision measures.",
+        "The generation prompt, since Faithfulness and Answer Relevancy already being high doesn't rule out the prompt as the root cause of the one remaining low score.",
+        "Nothing needs fixing, since 3 of 4 metrics are high."
+      ],
+      "correct": 1,
+      "explanations": [
+        "High Context Recall already establishes the relevant content was found somewhere in the retrieved set -- that rules out an embedding-quality problem (which would show up as content not being retrieved at all) and points specifically at ranking, which is what Context Precision measures.",
+        "Correct. This is exactly the table's own mapping: High Faithfulness + High Answer Relevancy rules out a generation-side problem, High Context Recall confirms the needed information WAS retrieved somewhere, and Low Context Precision specifically means it wasn't ranked near the top -- a reranking fix, not a retrieval-recall fix.",
+        "Faithfulness and Answer Relevancy being high specifically does rule out a generation-side cause here -- both metrics are generation-stage signals, and both are already high, meaning generation is working correctly on the context it received; the low score is isolated to Context Precision, a ranking-stage metric.",
+        "A low score on any one of the four metrics is diagnostic information pointing at a specific stage -- ignoring it because the average looks fine defeats the entire purpose of using four separable metrics instead of one aggregate score."
+      ]
+    },
+    {
+      "scenario": "A team wants to measure Context Recall on their RAG system but has no labeled reference answers for their evaluation questions -- only the questions themselves.",
+      "question": "Based on this page, what's the correct conclusion?",
+      "options": [
+        "Context Recall can be computed the same way as the other three metrics, using only the question, retrieved context, and generated answer.",
+        "Context Recall specifically requires a ground-truth reference answer to check retrieved context against -- without one, the team can still compute Faithfulness, Answer Relevancy, and Context Precision, but not Context Recall.",
+        "Answer Relevancy also needs a labeled reference answer, since it's comparing the generated answer's quality against a known correct response the same way Context Recall does.",
+        "Context Recall can be approximated by using the generated answer itself as a substitute for the reference answer, with no real difference in what's being measured."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This page states directly that Context Recall is the one metric among the four that needs a ground-truth reference -- it isn't computed the same way as the reference-free three.",
+        "Correct. This page states this explicitly: Faithfulness, Answer Relevancy, and Context Precision can all run without ground truth, using only question, retrieved context, and generated answer -- Context Recall specifically needs a reference answer, since it checks whether the reference's own claims are supported by retrieved context.",
+        "This page states Answer Relevancy is explicitly reference-free -- it works by generating hypothetical questions from the answer itself and comparing them to the original question, with no reference answer involved at all. Only Context Recall among the four requires one.",
+        "Using the generated answer in place of a reference would defeat the metric's actual purpose -- Context Recall checks whether retrieval found what the REFERENCE (independently correct) answer needed, not whether it supports whatever the system happened to generate, which could itself be wrong or incomplete."
+      ]
+    },
+    {
+      "scenario": "A team measures both SemanticSimilarity and FactualCorrectness on the same answer/reference pair and gets a high SemanticSimilarity score (0.877) but a FactualCorrectness score of 0.0, even though both a human reviewer and the team agree the answer states the same fact as the reference, just phrased slightly differently.",
+      "question": "Based on this page's own measured example, what's the correct interpretation of this discrepancy?",
+      "options": [
+        "This means FactualCorrectness specifically penalizes any answer that includes a more precise number or detail than the reference, treating added specificity itself as an automatic scoring violation regardless of accuracy.",
+        "FactualCorrectness's claim-decomposition-plus-NLI check is measurably stricter about scope and phrasing than embedding similarity, so a low FactualCorrectness score alone isn't proof of an actual factual error -- it can also reflect a phrasing/scope mismatch a human would still consider equivalent.",
+        "SemanticSimilarity must be the less trustworthy signal here, since its embedding-based comparison is more prone to being fooled by superficially similar wording than FactualCorrectness's claim-level check.",
+        "This combination reflects a data-entry mismatch -- the reference and generated answers must refer to different training runs (different actual GPU counts), which explains why FactualCorrectness treats them as contradictory facts."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This page doesn't establish a blanket rule that added specificity is always penalized -- what it shows is that FactualCorrectness's claim-decomposition-plus-NLI check is stricter about phrasing and scope in general (this example being singular-vs-plural framing plus an added number), not that any more-specific answer automatically fails; the two metrics aren't in a 'broken vs. reliable' relationship, they're just checking different things.",
+        "Correct. This page states this directly with a real measured example (the GPU question): FactualCorrectness's stricter claim-decomposition-plus-NLI check can penalize phrasing/scope differences that embedding similarity treats as equivalent -- a low score there needs a second look, not automatic treatment as a factual error.",
+        "This page frames it the opposite way for this specific case: SemanticSimilarity correctly identified genuine factual equivalence (0.877), while FactualCorrectness's stricter check flagged a phrasing/scope difference a human reader called equivalent -- 'stricter' here doesn't mean 'more trustworthy for this judgment,' it means differently scoped, and a low FactualCorrectness score needs a second look rather than being trusted by default.",
+        "This page states directly that this is the same fact, phrased slightly differently (singular 'model' vs. plural 'models', and an added specific count) -- not two different underlying facts about different training runs. The discrepancy is about how strictly the metric compares phrasing/scope, not a genuine factual conflict between two different claims."
+      ]
+    }
+  ]
+}
+</script>
+</div>
+
+<h2 id="sources-further-reading">Sources &amp; further reading<a class="headerlink" href="#sources-further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://docs.ragas.io">RAGAS documentation</a> — official docs, including the current per-sample <code>collections</code> API this page's scope note describes</li>
+<li><a href="https://github.com/vibrantlabsai/ragas">RAGAS GitHub (vibrantlabsai/ragas)</a> — the project moved orgs from <code>explodinggradients/ragas</code>; old links redirect here</li>
+<li><a href="https://docs.ragas.io/en/stable/getstarted/rag_testset_generation/">RAGAS testset generation documentation</a> — <code>TestsetGenerator</code>'s persona/query-style synthesis and multi-hop/single-hop synthesizer split</li>
+<li><a href="../advanced-rag-pre-retrieval/#hyde-hypothetical-document-embeddings">Advanced RAG — Pre-retrieval</a> — HyDE, the technique Answer Relevancy's question-to-question comparison deliberately mirrors</li>
+<li><a href="../embedding-models/">Embedding Model Selection</a> — the dense retrieval covered here is the exact retrieval mechanism this page's naive RAG pipeline uses and RAGAS evaluates</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dhruvmakwana" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.indexes", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/quiz.js"></script>
+      
+        <script src="../javascripts/flashcards.js"></script>
+      
+    
+  </body>
+</html>

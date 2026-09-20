@@ -1,0 +1,3523 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deep-dive reference on Retrieval-Augmented Generation — architectures, chunking, retrieval, evaluation, and production engineering.">
+      
+      
+        <meta name="author" content="Dhruv Makwana">
+      
+      
+        <link rel="canonical" href="https://dhruvmakwana.github.io/rag-deep-dive/embedding-models/">
+      
+      
+        <link rel="prev" href="../chunking/">
+      
+      
+        <link rel="next" href="../retrieval-methods/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Embedding Model Selection - RAG, Deep Dive</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../stylesheets/quiz.css">
+    
+      <link rel="stylesheet" href="../stylesheets/flashcards.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#embedding-model-selection" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="RAG, Deep Dive" class="md-header__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RAG, Deep Dive
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Embedding Model Selection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../revision/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Revision
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../naive-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Foundations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../modular-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architectures
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../vision-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Specialized RAG
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../chunking/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Retrieval Engineering
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../response-quality-safety/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Evaluation & Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../case-studies/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Case Studies
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials & Code
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RAG, Deep Dive" class="md-nav__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RAG, Deep Dive
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../revision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Revision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Foundations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../naive-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Naive RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-pre-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Pre-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-post-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Post-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architectures
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architectures
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modular-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modular RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrective-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corrective RAG (CRAG)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agentic-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graph-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specialized RAG
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specialized RAG
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vision-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multimodal-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multimodal RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Video-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CAG (Cache-Augmented Generation)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pageindex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PageIndex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Engineering
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Retrieval Engineering
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chunking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chunking Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Embedding Model Selection
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Embedding Model Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-rule-that-isnt-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one rule that isn't optional
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#matryoshka-representation-learning-mrl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matryoshka Representation Learning (MRL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quantization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instruction-tuned-embeddings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instruction-tuned embeddings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-vector-late-interaction-retrieval-colbert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-vector / late-interaction retrieval (ColBERT)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-vector / late-interaction retrieval (ColBERT)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#worked-example-how-maxsim-actually-scores-a-query-against-a-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked example: how MaxSim actually scores a query against a document
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learned-sparse-retrieval-splade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learned sparse retrieval (SPLADE)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Learned sparse retrieval (SPLADE)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-real-worked-comparison-bm25-vs-dense-vs-splade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A real worked comparison: BM25 vs. dense vs. SPLADE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-splade-actually-earns-its-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When SPLADE actually earns its place
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-search-combining-bm25-and-dense-with-rrf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid search: combining BM25 and dense with RRF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mteb-and-current-benchmarks-read-the-sub-score-not-the-badge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MTEB and current benchmarks — read the sub-score, not the badge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-current-landscape-roughly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The current landscape, roughly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fine-tuning-why-when-and-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fine-tuning: why, when, and how
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensembling-multiple-embedding-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ensembling multiple embedding models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../retrieval-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vector-databases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector Databases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation & Production
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evaluation & Production
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../response-quality-safety/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Response Quality & Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ragas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RAGAS Deep Dive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../production-considerations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Considerations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../case-studies/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Case Studies
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Case Studies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-turbopuffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion → turbopuffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-vector-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber: Billion-Scale Vector Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/airbnb-ivf-hnsw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airbnb: IVF over HNSW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/spotify-voyager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotify: Annoy → Voyager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/github-copilot-embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Copilot's Embedding Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/linkedin-graphrag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinkedIn's GraphRAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dropbox-dash/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dropbox Dash: RAG to Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/sourcegraph-cody/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sourcegraph Cody
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/klarna-ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Klarna's AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-querygpt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber QueryGPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/perplexity-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Perplexity's Hybrid Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/shopify-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopify's Real-Time Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dust-prompt-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust: Tiered Prompt Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/anthropic-eval-postmortem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Anthropic's Eval Postmortem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-braintrust-evals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion's Dual-Track Evals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/echoleak/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EchoLeak: Zero-Click Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/constitutional-classifiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Constitutional Classifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/harvey-document-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Harvey AI: Document Processing at Scale
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials & Code
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_9" id="__nav_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials & Code
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/naive-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Naive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Adaptive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/multi-doc-production-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Document Production RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-one-rule-that-isnt-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The one rule that isn't optional
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#matryoshka-representation-learning-mrl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matryoshka Representation Learning (MRL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quantization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instruction-tuned-embeddings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Instruction-tuned embeddings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-vector-late-interaction-retrieval-colbert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-vector / late-interaction retrieval (ColBERT)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-vector / late-interaction retrieval (ColBERT)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#worked-example-how-maxsim-actually-scores-a-query-against-a-document" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Worked example: how MaxSim actually scores a query against a document
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learned-sparse-retrieval-splade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learned sparse retrieval (SPLADE)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Learned sparse retrieval (SPLADE)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-real-worked-comparison-bm25-vs-dense-vs-splade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A real worked comparison: BM25 vs. dense vs. SPLADE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-splade-actually-earns-its-place" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When SPLADE actually earns its place
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-search-combining-bm25-and-dense-with-rrf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid search: combining BM25 and dense with RRF
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mteb-and-current-benchmarks-read-the-sub-score-not-the-badge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MTEB and current benchmarks — read the sub-score, not the badge
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-current-landscape-roughly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The current landscape, roughly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fine-tuning-why-when-and-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fine-tuning: why, when, and how
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensembling-multiple-embedding-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ensembling multiple embedding models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="embedding-model-selection">Embedding Model Selection<a class="headerlink" href="#embedding-model-selection" title="Permanent link">&para;</a></h1>
+<p>The embedding model determines <em>everything</em> about what "similar" means in vector search. Get chunking right, get reranking right, get the generation prompt right — none of it matters if the embedding model can't tell a relevant chunk from an irrelevant one in the first place. And unlike most RAG decisions, this one is annoyingly easy to get wrong silently: a bad model doesn't crash, it just quietly returns worse rankings, which is exactly the kind of failure that's hard to notice until someone asks a question and gets a bad answer.</p>
+<div class="admonition example">
+<p class="admonition-title">Hands-on</p>
+<p>Every claim on this page is backed by a measured Recall@k number, not just a description: <a href="https://github.com/DhruvMakwana/rag-cookbook/tree/main/embedding-model-selection"><strong>Embedding Model Selection →</strong></a> in the code repo. No LLM API key needed — every model runs fully locally.</p>
+</div>
+<details class="abstract">
+<summary>TL;DR — quick revision</summary>
+<ul>
+<li><strong>Hard rule:</strong> same embedding model for indexing and querying, always — mismatched models produce silently wrong rankings, not a crash (measured: 0.88 → 0.75 Recall@3 in a same-dimension mismatch)</li>
+<li><strong>Matryoshka Representation Learning (MRL):</strong> one model, truncate the output vector to any smaller size with <code>truncate_dim</code> — no retraining, and quality often survives surprisingly well (OpenAI <code>text-embedding-3</code>, Gemini Embedding, Qwen3-Embedding, <code>nomic-embed-text-v1.5</code> all support this)</li>
+<li><strong>Quantization</strong> (int8/binary) is a separate, stackable lever from MRL — same dimension, smaller number format; binary is 32x smaller than float32 but can cost real recall (measured: 0.88 → 0.38 on a small eval set)</li>
+<li><strong>Instruction-tuned embeddings</strong> expect a task-specific prefix at inference time — get the <em>specific model's</em> convention right (some prefix only the query, some prefix both sides differently) or silently lose quality</li>
+<li><strong>Multi-vector / late-interaction (ColBERT)</strong> keeps one embedding per <em>token</em>, not per chunk, scored via MaxSim — a fundamentally different retrieval paradigm from every single-vector model</li>
+<li><strong>Three retrieval paradigms, not one:</strong> BM25 (word counts, no model), dense embeddings (learned meaning, one vector per chunk), and <strong>SPLADE</strong> (learned meaning, shaped like BM25) each fail where the others succeed — worked comparison on a real 6-document example shows BM25 scoring the actual best answer a flat 0.000 while dense scores it highest</li>
+<li><strong>BGE-M3</strong> produces dense, sparse, <em>and</em> multi-vector representations from one model and one <code>encode()</code> call</li>
+<li><strong>On MTEB, check the retrieval sub-score specifically</strong>, not overall rank — a model can top the leaderboard on classification while being mediocre at retrieval</li>
+<li><strong>Fine-tune only after cheaper fixes are exhausted</strong> — hybrid search, reranking, and a better off-the-shelf model usually close more of the gap than fine-tuning does, for far less effort</li>
+</ul>
+</details>
+<h2 id="the-one-rule-that-isnt-optional">The one rule that isn't optional<a class="headerlink" href="#the-one-rule-that-isnt-optional" title="Permanent link">&para;</a></h2>
+<p>Index with one embedding model, query with a different one, and nothing crashes — the vectors are the same shape, the math runs fine, the numbers just stop meaning anything. Two different models put "similar" text in different, incomparable regions of vector space, so a cosine similarity between them is comparing apples to a completely unrelated fruit.</p>
+<p>Measuring this directly: indexing with <code>all-MiniLM-L6-v2</code> and querying with a <em>different</em> same-dimension model (<code>multi-qa-MiniLM-L6-cos-v1</code>) dropped Recall@3 from 0.88 to 0.75 on an 8-question eval set. That's real degradation, not the "retrieval completely breaks" some write-ups claim — the two models still share some structural similarity from similar training objectives. The more dangerous version of this bug is a genuine <strong>dimension mismatch</strong> (say, switching from a 384-dim to a 768-dim model): that one crashes the similarity computation outright, which is actually the easier failure to catch. Same-dimension-but-wrong-space is the one that ships to production silently.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># 8 question/keyword pairs, each keyword confirmed present verbatim in the</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># actual "Attention Is All You Need" text before being used as ground truth.</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">EVAL_SET</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"How many attention heads did they use?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"h = 8"</span><span class="p">},</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"What is the model's embedding dimension?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"dmodel = 512"</span><span class="p">},</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"How many layers are in the encoder?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"N = 6"</span><span class="p">},</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"What optimizer was used for training?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"Adam"</span><span class="p">},</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"What BLEU score did they get on English-to-German translation?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"28.4"</span><span class="p">},</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"What GPUs was the model trained on?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"P100"</span><span class="p">},</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"How long did the base model train for?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"12 hours"</span><span class="p">},</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="p">{</span><span class="s2">"question"</span><span class="p">:</span> <span class="s2">"What dropout rate did they use?"</span><span class="p">,</span> <span class="s2">"keyword"</span><span class="p">:</span> <span class="s2">"Pdrop = 0.1"</span><span class="p">},</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="p">]</span>
+</span><span id="__span-0-16"><a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>
+</span><span id="__span-0-17"><a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+</span><span id="__span-0-18"><a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="k">def</span><span class="w"> </span><span class="nf">recall_at_k</span><span class="p">(</span>
+</span><span id="__span-0-19"><a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">chunk_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-20"><a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>    <span class="n">query_embeddings</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+</span><span id="__span-0-21"><a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>    <span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+</span><span id="__span-0-22"><a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="n">keywords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+</span><span id="__span-0-23"><a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+</span><span id="__span-0-24"><a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="__span-0-25"><a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="sd">"""For each eval question, checks whether its keyword shows up in ANY</span>
+</span><span id="__span-0-26"><a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="sd">    of the top-k retrieved chunks — a simple, chunking-agnostic proxy for</span>
+</span><span id="__span-0-27"><a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="sd">    "did retrieval actually find the answer." `keywords[i]` must</span>
+</span><span id="__span-0-28"><a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="sd">    correspond to `query_embeddings[i]` — the caller owns that pairing,</span>
+</span><span id="__span-0-29"><a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="sd">    not this function. Returns the fraction of questions that pass."""</span>
+</span><span id="__span-0-30"><a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span> <span class="o">!=</span> <span class="n">query_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+</span><span id="__span-0-31"><a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="__span-0-32"><a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span><span class="si">}</span><span class="s2"> keywords but </span><span class="si">{</span><span class="n">query_embeddings</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> query embeddings — must match 1:1"</span>
+</span><span id="__span-0-33"><a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="p">)</span>
+</span><span id="__span-0-34"><a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>    <span class="n">query_norm</span> <span class="o">=</span> <span class="n">query_embeddings</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">query_embeddings</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+</span><span id="__span-0-35"><a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="n">chunk_norm</span> <span class="o">=</span> <span class="n">chunk_embeddings</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">chunk_embeddings</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span>
+</span><span id="__span-0-36"><a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>    <span class="n">similarities</span> <span class="o">=</span> <span class="n">query_norm</span> <span class="o">@</span> <span class="n">chunk_norm</span><span class="o">.</span><span class="n">T</span>
+</span><span id="__span-0-37"><a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>
+</span><span id="__span-0-38"><a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>    <span class="n">hits</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="__span-0-39"><a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">keywords</span><span class="p">):</span>
+</span><span id="__span-0-40"><a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>        <span class="n">top_k_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">similarities</span><span class="p">[</span><span class="n">i</span><span class="p">])[:</span><span class="n">k</span><span class="p">]</span>
+</span><span id="__span-0-41"><a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>        <span class="n">retrieved_text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chunks</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">top_k_indices</span><span class="p">)</span>
+</span><span id="__span-0-42"><a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>        <span class="k">if</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">retrieved_text</span><span class="p">:</span>
+</span><span id="__span-0-43"><a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>            <span class="n">hits</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="__span-0-44"><a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>    <span class="k">return</span> <span class="n">hits</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+</span><span id="__span-0-45"><a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>
+</span><span id="__span-0-46"><a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>
+</span><span id="__span-0-47"><a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_mismatched_models</span><span class="p">(</span><span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-0-48"><a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a><span class="w">    </span><span class="sd">"""Index with one model, query with a DIFFERENT model — this is the</span>
+</span><span id="__span-0-49"><a id="__codelineno-0-49" name="__codelineno-0-49" href="#__codelineno-0-49"></a><span class="sd">    one rule the embedding-models page calls non-negotiable. Vectors from</span>
+</span><span id="__span-0-50"><a id="__codelineno-0-50" name="__codelineno-0-50" href="#__codelineno-0-50"></a><span class="sd">    different models live in different, incomparable spaces. The two</span>
+</span><span id="__span-0-51"><a id="__codelineno-0-51" name="__codelineno-0-51" href="#__codelineno-0-51"></a><span class="sd">    models here are deliberately the same dimension (384) so the failure</span>
+</span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a><span class="sd">    is SILENT — a differently-sized model would crash the matrix multiply</span>
+</span><span id="__span-0-53"><a id="__codelineno-0-53" name="__codelineno-0-53" href="#__codelineno-0-53"></a><span class="sd">    outright, which is the easy case to catch; same-dimension-but-wrong-</span>
+</span><span id="__span-0-54"><a id="__codelineno-0-54" name="__codelineno-0-54" href="#__codelineno-0-54"></a><span class="sd">    space is the dangerous one, since nothing errors, it just quietly</span>
+</span><span id="__span-0-55"><a id="__codelineno-0-55" name="__codelineno-0-55" href="#__codelineno-0-55"></a><span class="sd">    returns nonsense rankings."""</span>
+</span><span id="__span-0-56"><a id="__codelineno-0-56" name="__codelineno-0-56" href="#__codelineno-0-56"></a>    <span class="n">questions</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">"question"</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">EVAL_SET</span><span class="p">]</span>
+</span><span id="__span-0-57"><a id="__codelineno-0-57" name="__codelineno-0-57" href="#__codelineno-0-57"></a>    <span class="n">keywords</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">"keyword"</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">EVAL_SET</span><span class="p">]</span>
+</span><span id="__span-0-58"><a id="__codelineno-0-58" name="__codelineno-0-58" href="#__codelineno-0-58"></a>
+</span><span id="__span-0-59"><a id="__codelineno-0-59" name="__codelineno-0-59" href="#__codelineno-0-59"></a>    <span class="n">model_a</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"all-MiniLM-L6-v2"</span><span class="p">)</span>
+</span><span id="__span-0-60"><a id="__codelineno-0-60" name="__codelineno-0-60" href="#__codelineno-0-60"></a>    <span class="n">model_b</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"multi-qa-MiniLM-L6-cos-v1"</span><span class="p">)</span>
+</span><span id="__span-0-61"><a id="__codelineno-0-61" name="__codelineno-0-61" href="#__codelineno-0-61"></a>
+</span><span id="__span-0-62"><a id="__codelineno-0-62" name="__codelineno-0-62" href="#__codelineno-0-62"></a>    <span class="n">chunk_vecs_a</span> <span class="o">=</span> <span class="n">model_a</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-63"><a id="__codelineno-0-63" name="__codelineno-0-63" href="#__codelineno-0-63"></a>    <span class="n">query_vecs_a</span> <span class="o">=</span> <span class="n">model_a</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-64"><a id="__codelineno-0-64" name="__codelineno-0-64" href="#__codelineno-0-64"></a>    <span class="n">same_model_recall</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs_a</span><span class="p">,</span> <span class="n">query_vecs_a</span><span class="p">,</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-0-65"><a id="__codelineno-0-65" name="__codelineno-0-65" href="#__codelineno-0-65"></a>
+</span><span id="__span-0-66"><a id="__codelineno-0-66" name="__codelineno-0-66" href="#__codelineno-0-66"></a>    <span class="n">query_vecs_b</span> <span class="o">=</span> <span class="n">model_b</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-0-67"><a id="__codelineno-0-67" name="__codelineno-0-67" href="#__codelineno-0-67"></a>    <span class="n">mismatched_recall</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs_a</span><span class="p">,</span> <span class="n">query_vecs_b</span><span class="p">,</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-0-68"><a id="__codelineno-0-68" name="__codelineno-0-68" href="#__codelineno-0-68"></a>
+</span><span id="__span-0-69"><a id="__codelineno-0-69" name="__codelineno-0-69" href="#__codelineno-0-69"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Same model for index + query: Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">same_model_recall</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-0-70"><a id="__codelineno-0-70" name="__codelineno-0-70" href="#__codelineno-0-70"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Mismatched query model:       Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">mismatched_recall</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<h2 id="matryoshka-representation-learning-mrl">Matryoshka Representation Learning (MRL)<a class="headerlink" href="#matryoshka-representation-learning-mrl" title="Permanent link">&para;</a></h2>
+<p>Most embedding models bake in one fixed output size — 384, 768, 1024 dimensions, whatever it was trained to produce, and that's what you're stuck storing and searching against. <strong>Matryoshka Representation Learning</strong> trains a model differently: the <em>most important</em> information is concentrated in the first few dimensions, with each additional dimension adding progressively finer detail — like a nesting doll, hence the name. This means you can truncate the output vector to any smaller size after the fact, with no retraining, and it degrades gracefully instead of falling apart.</p>
+<p><strong>Why this matters practically:</strong> storage and search cost scale directly with dimension count, multiplied across every chunk in your index. A model that lets you drop from 1024 to 256 dimensions with a small, controlled accuracy cost is a direct infrastructure cost lever — cutting storage 4x and speeding up every similarity computation, without switching models or re-embedding from scratch at a different size (you can even keep the same stored full-size vectors and truncate at query time to experiment).</p>
+<p><strong>Measured trade-off</strong> (<code>nomic-embed-text-v1.5</code>, Matryoshka-trained down to 128 dims):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_matryoshka_truncation</span><span class="p">(</span><span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">keywords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="sd">"""Embed the same chunks and queries at several truncated dimensions</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="sd">    using ONE Matryoshka-trained model (nomic-embed-text-v1.5, trained to</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="sd">    support 768/512/256/128-dim slices) — no retraining, just a smaller</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="sd">    `truncate_dim` per call — and measure how much (if any) Recall@k is</span>
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="sd">    actually lost at each size. `recall_at_k` is defined the same way as</span>
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="sd">    in the `mismatched` snippet above; `keywords[i]` must correspond to</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="sd">    `questions[i]`."""</span>
+</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"nomic-ai/nomic-embed-text-v1.5"</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>
+</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>    <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">768</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">128</span><span class="p">):</span>
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>        <span class="n">chunk_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">truncate_dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>        <span class="n">query_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="n">truncate_dim</span><span class="o">=</span><span class="n">dim</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>        <span class="n">recall</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs</span><span class="p">,</span> <span class="n">query_vecs</span><span class="p">,</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a>        <span class="n">storage_kb</span> <span class="o">=</span> <span class="n">chunk_vecs</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">/</span> <span class="mi">1024</span>
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"dim=</span><span class="si">{</span><span class="n">dim</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">recall</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  storage for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span><span class="si">}</span><span class="s2"> chunks = </span><span class="si">{</span><span class="n">storage_kb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> KB"</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>Who supports this today:</strong> OpenAI's <code>text-embedding-3-small</code>/<code>-large</code>, Google's Gemini Embedding, Alibaba's Qwen3-Embedding family (configurable 32 to 1024+ dims), and open models like <code>nomic-embed-text-v1.5</code>. Check the specific model's documentation for which exact sizes it was trained/validated at — truncating to an arbitrary size the model wasn't designed for works less predictably than the officially supported cut points (for <code>nomic-embed-text-v1.5</code>: 768, 512, 256, 128).</p>
+<h2 id="quantization">Quantization<a class="headerlink" href="#quantization" title="Permanent link">&para;</a></h2>
+<p>A separate, <em>stackable</em> lever from Matryoshka — instead of storing fewer dimensions, store each dimension in fewer bits. A <code>float32</code> embedding uses 4 bytes per dimension; <code>int8</code> quantization uses 1 byte (4x smaller); binary quantization packs 8 dimensions into a single byte (32x smaller than float32). None of this touches dimensionality — a 768-dim float32 vector and a 768-dim binary vector cover the same semantic space, just represented with different precision.</p>
+<p><strong>Measured trade-off</strong> (same model and dimension, precision only):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_quantization</span><span class="p">(</span><span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">keywords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="sd">"""Same model, same dimension — only the stored NUMBER FORMAT changes.</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="sd">    float32 is 4 bytes/dim, int8 is 1 byte/dim (4x smaller), binary packs</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="sd">    8 dims per byte (32x smaller than float32). Measures whether Recall@k</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="sd">    survives each step down. `recall_at_k` is defined the same way as in</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="sd">    the `mismatched` snippet above; `keywords[i]` must correspond to</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">    `questions[i]`."""</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"nomic-ai/nomic-embed-text-v1.5"</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>    <span class="k">for</span> <span class="n">precision</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"float32"</span><span class="p">,</span> <span class="s2">"int8"</span><span class="p">,</span> <span class="s2">"binary"</span><span class="p">):</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        <span class="n">chunk_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>        <span class="n">query_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>        <span class="c1"># cosine similarity needs float math even for quantized vectors</span>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>        <span class="n">recall</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">query_vecs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a>        <span class="n">storage_kb</span> <span class="o">=</span> <span class="n">chunk_vecs</span><span class="o">.</span><span class="n">nbytes</span> <span class="o">/</span> <span class="mi">1024</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">precision</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">recall</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">  storage for </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">chunks</span><span class="p">)</span><span class="si">}</span><span class="s2"> chunks = </span><span class="si">{</span><span class="n">storage_kb</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> KB"</span><span class="p">)</span>
+</span></code></pre></div>
+<p><code>float32 → int8</code> cost almost nothing here (0.88 → 0.75 Recall@3 for a 4x storage win); <code>binary</code> cost considerably more (down to 0.38) — the sharpest cut in the whole precision spectrum, since 1-bit-per-dimension throws away far more signal than 8-bit does. In production, binary quantization is typically paired with a <strong>rescoring step</strong>: retrieve a larger candidate set cheaply with binary vectors, then re-rank the shortlist with the original float32 vectors — getting most of the storage win without eating the full accuracy cost on the final ranking.</p>
+<h2 id="instruction-tuned-embeddings">Instruction-tuned embeddings<a class="headerlink" href="#instruction-tuned-embeddings" title="Permanent link">&para;</a></h2>
+<p>Many current embedding models expect a short task-specific string prepended to the input at inference time — not a stylistic nicety, but part of how the model was trained, meaning skipping it or using the wrong convention costs real retrieval quality. Critically, <strong>the exact convention differs per model</strong> and getting it wrong is easy to do silently:</p>
+<ul>
+<li><strong>Qwen3-Embedding</strong> expects an instruction only on the <strong>query</strong> side (e.g. <code>"Instruct: Given a question, retrieve passages that answer it\nQuery: {question}"</code>) — passages are embedded plain. The model's own documentation notes skipping this costs roughly 1-5% retrieval quality.</li>
+<li><strong><code>nomic-embed-text-v1.5</code></strong> expects a <strong>different prefix on each side</strong> — <code>"search_query: "</code> on questions, <code>"search_document: "</code> on passages — not the same string on both, and not query-only like Qwen3.</li>
+</ul>
+<p><strong>Measured</strong> (<code>nomic-embed-text-v1.5</code>, correct dual-prefix convention vs. none):</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_instruction_prefix</span><span class="p">(</span><span class="n">chunks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">questions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">keywords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="sd">"""Instruction-tuned embedding models expect a short task prefix at</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="sd">    inference time — for nomic-embed-text-v1.5 specifically, a DIFFERENT</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="sd">    prefix for each side: "search_query: " on questions, "search_document: "</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="sd">    on passages, not the same prefix on both. Compares Recall@k with vs.</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="sd">    without those prefixes on the same model. `recall_at_k` is defined</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="sd">    the same way as in the `mismatched` snippet above; `keywords[i]` must</span>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="sd">    correspond to `questions[i]`."""</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"nomic-ai/nomic-embed-text-v1.5"</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    <span class="n">chunk_vecs_plain</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    <span class="n">query_vecs_plain</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">questions</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>    <span class="n">recall_plain</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs_plain</span><span class="p">,</span> <span class="n">query_vecs_plain</span><span class="p">,</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
+</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="n">prefixed_chunks</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"search_document: "</span> <span class="o">+</span> <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">]</span>
+</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    <span class="n">prefixed_questions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"search_query: "</span> <span class="o">+</span> <span class="n">q</span> <span class="k">for</span> <span class="n">q</span> <span class="ow">in</span> <span class="n">questions</span><span class="p">]</span>
+</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>    <span class="n">chunk_vecs_prefixed</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">prefixed_chunks</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    <span class="n">query_vecs_prefixed</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">prefixed_questions</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>    <span class="n">recall_prefixed</span> <span class="o">=</span> <span class="n">recall_at_k</span><span class="p">(</span><span class="n">chunk_vecs_prefixed</span><span class="p">,</span> <span class="n">query_vecs_prefixed</span><span class="p">,</span> <span class="n">chunks</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No prefixes (plain text both sides):      Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">recall_plain</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Correct prefixes (search_query/document): Recall@</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">recall_prefixed</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">An honest negative result</p>
+<p>On this specific 8-question eval set, prefixed and unprefixed queries scored <strong>identically</strong> — 0.88 both ways. That's not evidence prefixes don't matter; it's evidence that an 8-question eval set doesn't have the statistical power to reliably surface every real effect, including ones the model's own documentation confirms exist at benchmark scale. Small eval sets are useful for catching large, obvious breaks (like the mismatched-model and quantization results above) — they're not reliable for detecting small effects, and reporting a null result honestly here matters more than forcing a tidy narrative.</p>
+</div>
+<h2 id="multi-vector-late-interaction-retrieval-colbert">Multi-vector / late-interaction retrieval (ColBERT)<a class="headerlink" href="#multi-vector-late-interaction-retrieval-colbert" title="Permanent link">&para;</a></h2>
+<p>Every technique above still produces <strong>one vector per chunk</strong> — the entire chunk's meaning compressed into a single point. ColBERT-style <strong>late-interaction</strong> retrieval does something structurally different: it keeps <strong>one embedding per token</strong>, and scores a query against a document using <strong>MaxSim</strong> — for each query token, find its single best-matching document token, then sum those best-match scores across all query tokens. The interaction between query and document happens <em>late</em>, at scoring time, token-by-token, rather than being collapsed into one similarity number upfront.</p>
+<p><strong>Why this can outperform single-vector retrieval:</strong> a chunk's single vector is necessarily an average/compromise across everything the chunk discusses, which can dilute the specific signal a narrow query is looking for. Multi-vector retrieval keeps every token's signal intact, so a query matching one precise detail buried in an otherwise-unrelated chunk can still score well — the cost is more storage (many vectors instead of one per chunk) and more compute at query time (comparing token-by-token instead of one dot product).</p>
+<h3 id="worked-example-how-maxsim-actually-scores-a-query-against-a-document">Worked example: how MaxSim actually scores a query against a document<a class="headerlink" href="#worked-example-how-maxsim-actually-scores-a-query-against-a-document" title="Permanent link">&para;</a></h3>
+<p>Query: <em>"Who won the World Cup?"</em> Document chunk: <em>"The 2022 FIFA World Cup was won by Argentina in Qatar."</em></p>
+<p>A late-interaction model embeds <strong>every token of both</strong>, contextually — so each token's vector already reflects the tokens around it, not just the word in isolation. MaxSim then does this, one query token at a time: compare it against <strong>every</strong> document token vector, keep only the single <strong>best</strong> match, and move to the next query token. These are real cosine similarities, computed from <code>all-MiniLM-L6-v2</code>'s actual per-token embeddings (<code>model.encode(text, output_value="token_embeddings")</code>) — not invented for illustration:</p>
+<table>
+<thead>
+<tr>
+<th>Query token</th>
+<th>Best-matching document token</th>
+<th>Cosine similarity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>who</code></td>
+<td><code>by</code></td>
+<td>0.427</td>
+</tr>
+<tr>
+<td><code>won</code></td>
+<td><code>won</code></td>
+<td>0.822</td>
+</tr>
+<tr>
+<td><code>the</code></td>
+<td><code>the</code></td>
+<td>0.569</td>
+</tr>
+<tr>
+<td><code>world</code></td>
+<td><code>world</code></td>
+<td>0.769</td>
+</tr>
+<tr>
+<td><code>cup</code></td>
+<td><code>cup</code></td>
+<td>0.806</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td><code>.</code></td>
+<td>0.405</td>
+</tr>
+</tbody>
+</table>
+<p><strong>MaxSim score = sum of the best-match column = 3.797.</strong> That single number is the query-document relevance score — but unlike a single cosine similarity, you can see exactly <em>which</em> tokens drove it: <code>won</code>, <code>world</code>, and <code>cup</code> matched strongly (0.77-0.82) since those words appear literally in both, while <code>who</code>, <code>the</code>, and <code>?</code> contributed far less.</p>
+<p><strong>An honest caveat about this specific example:</strong> <code>who</code> matched <code>by</code> here, not <code>argentina</code> — which would be the more semantically satisfying match, since "who" is really asking for the entity name. That's <code>all-MiniLM-L6-v2</code> showing its limits for this task: it's a general-purpose <em>sentence</em> embedding model, not a model specifically trained with the MaxSim objective the way real ColBERT/BGE-M3 multi-vector models are — its individual token embeddings weren't optimized for this kind of fine-grained token-to-token matching. The <strong>mechanism</strong> shown here (compare against every token, keep only the best match, sum the best matches) is exactly what a real late-interaction model does; a model actually trained for it would be expected to produce sharper, more semantically correct token alignments than this quick illustration does.</p>
+<p><strong>Contrast with single-vector retrieval:</strong> a normal embedding model would average the whole query into one vector and the whole document into one vector, then compute one cosine similarity between those two points — a single number with no way to see that <code>won</code>/<code>world</code>/<code>cup</code> carried the match while <code>who</code>/<code>the</code>/<code>?</code> barely contributed. That averaging is exactly what late-interaction avoids — and exactly why it costs more storage (12 document vectors instead of 1) and more compute (roughly 6×12 = 72 pairwise comparisons instead of 1) to get it.</p>
+<p><strong>BGE-M3 packages this as one of three outputs from a single model call:</strong></p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">FlagEmbedding</span><span class="w"> </span><span class="kn">import</span> <span class="n">BGEM3FlagModel</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_bge_m3_multi_functionality</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">    </span><span class="sd">"""One model, one encode() call, three different retrieval</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="sd">    representations: a dense vector (semantic similarity), sparse</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="sd">    lexical weights (keyword-style, BM25-like matching with learned</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="sd">    weights instead of statistics), and ColBERT-style per-token vectors</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="sd">    (late-interaction / multi-vector retrieval)."""</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">BGEM3FlagModel</span><span class="p">(</span><span class="s2">"BAAI/bge-m3"</span><span class="p">,</span> <span class="n">use_fp16</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="n">output</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">([</span><span class="n">text</span><span class="p">],</span> <span class="n">return_dense</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">return_colbert_vecs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>    <span class="n">dense</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">"dense_vecs"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">sparse</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">"lexical_weights"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="n">colbert</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="s2">"colbert_vecs"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="n">decoded_sparse</span> <span class="o">=</span> <span class="p">{</span><span class="n">model</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">token_id</span><span class="p">)]):</span> <span class="n">weight</span> <span class="k">for</span> <span class="n">token_id</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="n">sparse</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>    <span class="n">top_terms</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">decoded_sparse</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">])[:</span><span class="mi">5</span><span class="p">]</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Dense vector:    shape=</span><span class="si">{</span><span class="n">dense</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Sparse weights:  top terms = </span><span class="si">{</span><span class="n">top_terms</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ColBERT vectors: shape=</span><span class="si">{</span><span class="n">colbert</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> (one vector per token)"</span><span class="p">)</span>
+</span></code></pre></div>
+<p>One <code>encode()</code> call, three genuinely different retrieval representations: a dense vector (semantic similarity, same as everything above), sparse lexical weights (covered next), and per-token ColBERT-style vectors — letting one model serve all three retrieval "lanes" a production hybrid system might otherwise need three separate models for.</p>
+<h2 id="learned-sparse-retrieval-splade">Learned sparse retrieval (SPLADE)<a class="headerlink" href="#learned-sparse-retrieval-splade" title="Permanent link">&para;</a></h2>
+<p>Every technique so far on this page — Matryoshka, quantization, instructions, multi-vector/ColBERT — has been about <strong>dense embeddings</strong>: a model that reads a whole passage and compresses it into one vector of continuous numbers, trained so <strong>similar meaning</strong> lands close together in that vector space, whether or not the actual words match. SPLADE takes a genuinely different approach, one best understood by contrast with the classic non-neural alternative it's trying to improve on: <strong>BM25</strong>.</p>
+<p><strong>BM25 (classic sparse / lexical retrieval):</strong> represents a document as <strong>word counts</strong> — no model, no training, just a statistical formula. It scores a query-document pair based on whether the query's actual words appear in the document, how often (term frequency), and how rare that word is across the whole corpus (inverse document frequency — "the" appearing means nothing, a rare technical term appearing means a lot). The representation has one slot per vocabulary word, and almost all slots are zero for any given document — hence <strong>sparse</strong>. Its blind spot: pure vocabulary matching, with no notion that "automobile" and "car" mean the same thing.</p>
+<p><strong>SPLADE (learned sparse retrieval):</strong> trained like a dense model, shaped like a BM25 vector. Instead of computing word-count statistics, a neural network <strong>predicts which vocabulary words should be weighted highly</strong> for a passage — including words that never literally appear in it, if the model learned they're related (a form of learned query/document expansion BM25 has no mechanism for). The output stays sparse — mostly zeros, searchable with the same fast inverted-index infrastructure as BM25 — but the weights come from learned meaning, not from counting.</p>
+<h3 id="a-real-worked-comparison-bm25-vs-dense-vs-splade">A real worked comparison: BM25 vs. dense vs. SPLADE<a class="headerlink" href="#a-real-worked-comparison-bm25-vs-dense-vs-splade" title="Permanent link">&para;</a></h3>
+<p>Query: <strong>"car problems"</strong>. A small 6-document corpus, including the one document that actually answers the query and five distractors:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Doc A: "My automobile has engine trouble"        ← the actual answer, shares zero words with the query
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Doc B: "Car insurance policy renewal"             ← shares the word "car", but isn't about car problems
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Doc C: "Best restaurants in the city"             ← unrelated
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Doc D: "How to bake sourdough bread"              ← unrelated
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Doc E: "Weather forecast for next week"           ← unrelated
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Doc F: "Car maintenance schedule and tips"        ← shares "car", tangentially related
+</span></code></pre></div>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rank_bm25</span><span class="w"> </span><span class="kn">import</span> <span class="n">BM25Okapi</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_bm25_vs_dense</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="sd">"""BM25 (pure lexical statistics) vs. a dense embedder on a corpus</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sd">    built specifically to expose the gap between them: Doc A is the real</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sd">    answer to "car problems" but shares zero words with the query, while</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="sd">    Doc B and Doc F merely contain the literal word "car" without being</span>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="sd">    about car problems."""</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>        <span class="s2">"My automobile has engine trouble"</span><span class="p">,</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>        <span class="s2">"Car insurance policy renewal"</span><span class="p">,</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>        <span class="s2">"Best restaurants in the city"</span><span class="p">,</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>        <span class="s2">"How to bake sourdough bread"</span><span class="p">,</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>        <span class="s2">"Weather forecast for next week"</span><span class="p">,</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>        <span class="s2">"Car maintenance schedule and tips"</span><span class="p">,</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a>    <span class="p">]</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a>    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Doc A"</span><span class="p">,</span> <span class="s2">"Doc B"</span><span class="p">,</span> <span class="s2">"Doc C"</span><span class="p">,</span> <span class="s2">"Doc D"</span><span class="p">,</span> <span class="s2">"Doc E"</span><span class="p">,</span> <span class="s2">"Doc F"</span><span class="p">]</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a>    <span class="n">query</span> <span class="o">=</span> <span class="s2">"car problems"</span>
+</span><span id="__span-6-22"><a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a>
+</span><span id="__span-6-23"><a id="__codelineno-6-23" name="__codelineno-6-23" href="#__codelineno-6-23"></a>    <span class="n">tokenized_corpus</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">corpus</span><span class="p">]</span>
+</span><span id="__span-6-24"><a id="__codelineno-6-24" name="__codelineno-6-24" href="#__codelineno-6-24"></a>    <span class="n">bm25</span> <span class="o">=</span> <span class="n">BM25Okapi</span><span class="p">(</span><span class="n">tokenized_corpus</span><span class="p">)</span>
+</span><span id="__span-6-25"><a id="__codelineno-6-25" name="__codelineno-6-25" href="#__codelineno-6-25"></a>    <span class="n">bm25_scores</span> <span class="o">=</span> <span class="n">bm25</span><span class="o">.</span><span class="n">get_scores</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+</span><span id="__span-6-26"><a id="__codelineno-6-26" name="__codelineno-6-26" href="#__codelineno-6-26"></a>
+</span><span id="__span-6-27"><a id="__codelineno-6-27" name="__codelineno-6-27" href="#__codelineno-6-27"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"all-MiniLM-L6-v2"</span><span class="p">)</span>
+</span><span id="__span-6-28"><a id="__codelineno-6-28" name="__codelineno-6-28" href="#__codelineno-6-28"></a>    <span class="n">doc_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-6-29"><a id="__codelineno-6-29" name="__codelineno-6-29" href="#__codelineno-6-29"></a>    <span class="n">query_vec</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">([</span><span class="n">query</span><span class="p">],</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-6-30"><a id="__codelineno-6-30" name="__codelineno-6-30" href="#__codelineno-6-30"></a>    <span class="n">query_norm</span> <span class="o">=</span> <span class="n">query_vec</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">query_vec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-31"><a id="__codelineno-6-31" name="__codelineno-6-31" href="#__codelineno-6-31"></a>    <span class="n">doc_norm</span> <span class="o">=</span> <span class="n">doc_vecs</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">doc_vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-32"><a id="__codelineno-6-32" name="__codelineno-6-32" href="#__codelineno-6-32"></a>    <span class="n">dense_scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_norm</span> <span class="o">@</span> <span class="n">doc_norm</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-6-33"><a id="__codelineno-6-33" name="__codelineno-6-33" href="#__codelineno-6-33"></a>
+</span><span id="__span-6-34"><a id="__codelineno-6-34" name="__codelineno-6-34" href="#__codelineno-6-34"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Document                                    BM25    Dense"</span><span class="p">)</span>
+</span><span id="__span-6-35"><a id="__codelineno-6-35" name="__codelineno-6-35" href="#__codelineno-6-35"></a>    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">bm25_score</span><span class="p">,</span> <span class="n">dense_score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">corpus</span><span class="p">,</span> <span class="n">bm25_scores</span><span class="p">,</span> <span class="n">dense_scores</span><span class="p">):</span>
+</span><span id="__span-6-36"><a id="__codelineno-6-36" name="__codelineno-6-36" href="#__codelineno-6-36"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">doc</span><span class="si">:</span><span class="s2">&lt;35s</span><span class="si">}</span><span class="s2">)  </span><span class="si">{</span><span class="n">bm25_score</span><span class="si">:</span><span class="s2">5.3f</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="n">dense_score</span><span class="si">:</span><span class="s2">6.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<p><strong>BM25</strong> (<code>rank_bm25</code>'s <code>BM25Okapi</code>, no model, pure statistics):</p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>BM25 score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Doc A (automobile / engine trouble)</td>
+<td><strong>0.000</strong></td>
+</tr>
+<tr>
+<td>Doc B (car insurance)</td>
+<td>0.637</td>
+</tr>
+<tr>
+<td>Doc C, D, E (unrelated)</td>
+<td>0.000</td>
+</tr>
+<tr>
+<td>Doc F (car maintenance)</td>
+<td>0.579</td>
+</tr>
+</tbody>
+</table>
+<p>Doc A — the one document that's actually about car problems — scores a flat <strong>zero</strong>. It shares no words with the query at all, and BM25 has no way to know "automobile" means "car." Doc B and Doc F outrank it purely because they contain the literal word "car."</p>
+<p><strong>Dense embeddings</strong> (<code>all-MiniLM-L6-v2</code>, cosine similarity — the same paradigm as everything earlier on this page):</p>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>Cosine similarity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Doc A (automobile / engine trouble)</td>
+<td><strong>0.593</strong></td>
+</tr>
+<tr>
+<td>Doc F (car maintenance)</td>
+<td>0.341</td>
+</tr>
+<tr>
+<td>Doc B (car insurance)</td>
+<td>0.340</td>
+</tr>
+<tr>
+<td>Doc C, D, E (unrelated)</td>
+<td>~0.00 to -0.03</td>
+</tr>
+</tbody>
+</table>
+<p>Exactly the opposite pattern from BM25. Doc A now ranks clearly first, because the model learned that "automobile" and "engine trouble" are semantically about the same thing as "car problems" — no shared vocabulary required.</p>
+<p><strong>SPLADE</strong>, using a real <code>naver/splade-cocondenser-ensembledistil</code> model via <code>sentence-transformers</code>' <code>SparseEncoder</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SparseEncoder</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_splade</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="sd">"""A real SPLADE model predicts vocabulary weights for a passage,</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="sd">    including words that never literally appear in it. Shows this</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="sd">    directly: "car" gets real weight for Doc A ("my automobile has</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="sd">    engine trouble"), despite the word "car" not being in that sentence</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="sd">    at all."""</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>        <span class="s2">"My automobile has engine trouble"</span><span class="p">,</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>        <span class="s2">"Car insurance policy renewal"</span><span class="p">,</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>        <span class="s2">"Best restaurants in the city"</span><span class="p">,</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>        <span class="s2">"How to bake sourdough bread"</span><span class="p">,</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>        <span class="s2">"Weather forecast for next week"</span><span class="p">,</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>        <span class="s2">"Car maintenance schedule and tips"</span><span class="p">,</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a>    <span class="p">]</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Doc A"</span><span class="p">,</span> <span class="s2">"Doc B"</span><span class="p">,</span> <span class="s2">"Doc C"</span><span class="p">,</span> <span class="s2">"Doc D"</span><span class="p">,</span> <span class="s2">"Doc E"</span><span class="p">,</span> <span class="s2">"Doc F"</span><span class="p">]</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>    <span class="n">query</span> <span class="o">=</span> <span class="s2">"car problems"</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SparseEncoder</span><span class="p">(</span><span class="s2">"naver/splade-cocondenser-ensembledistil"</span><span class="p">)</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a>    <span class="n">doc_embeddings</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">corpus</span><span class="p">)</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a>    <span class="n">query_embedding</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">([</span><span class="n">query</span><span class="p">])</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a>    <span class="n">scores</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">similarity</span><span class="p">(</span><span class="n">query_embedding</span><span class="p">,</span> <span class="n">doc_embeddings</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a>    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: SPLADE score = </span><span class="si">{</span><span class="n">score</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a>
+</span><span id="__span-7-29"><a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a>    <span class="n">doc_a_terms</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">doc_embeddings</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">top_k</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</span><span id="__span-7-30"><a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Doc A's top-weighted vocabulary terms (learned, not literal words in the sentence): </span><span class="si">{</span><span class="n">doc_a_terms</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Document</th>
+<th>SPLADE score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Doc A (automobile / engine trouble)</td>
+<td><strong>25.825</strong></td>
+</tr>
+<tr>
+<td>Doc B (car insurance)</td>
+<td>11.750</td>
+</tr>
+<tr>
+<td>Doc F (car maintenance)</td>
+<td>11.528</td>
+</tr>
+<tr>
+<td>Doc C, D, E (unrelated)</td>
+<td>0.000</td>
+</tr>
+</tbody>
+</table>
+<p>Doc A wins clearly, same as dense — but the <em>mechanism</em> is directly inspectable in a way dense cosine similarity never is. Decoding Doc A's own sparse vector back to vocabulary terms shows exactly why: <code>engine</code> (2.81), <code>trouble</code> (2.25), <code>engines</code> (2.07), <code>problems</code> (2.00), and — the interesting one — <strong><code>car</code> (1.96)</strong>, a real, non-zero learned weight for a word that never appears anywhere in "My automobile has engine trouble." That's SPLADE's learned query/document expansion working exactly as described: closing BM25's vocabulary gap while staying in the same sparse, inverted-index-friendly, inspectable shape as BM25 — you can point at the exact term and weight that drove the match, which cosine similarity on a dense vector never lets you do.</p>
+<h3 id="when-splade-actually-earns-its-place">When SPLADE actually earns its place<a class="headerlink" href="#when-splade-actually-earns-its-place" title="Permanent link">&para;</a></h3>
+<p><strong>Over plain BM25:</strong> whenever queries and documents describe the same thing with genuinely different words — a support ticket saying "the app keeps freezing" needs to match a bug report saying "application becomes unresponsive," which share zero terms in common, exactly like Doc A above. BM25's term-overlap scoring can't bridge that gap at all; SPLADE's learned expansion can, while still being fast, inverted-index-searchable sparse retrieval rather than paying the full cost of a dense vector search.</p>
+<p><strong>When to skip it, even over dense:</strong> if you're already running dense retrieval, SPLADE's main advantage over dense is <em>interpretability and exact-term precision</em> — you can see exactly which vocabulary terms scored a match, and rare/exact tokens like product SKUs or error codes are handled naturally. If neither of those is a real pain point in your system, plain hybrid dense+BM25 covers most of the same ground with one less moving part to run and maintain.</p>
+<h3 id="hybrid-search-combining-bm25-and-dense-with-rrf">Hybrid search: combining BM25 and dense with RRF<a class="headerlink" href="#hybrid-search-combining-bm25-and-dense-with-rrf" title="Permanent link">&para;</a></h3>
+<p>BM25 and dense embeddings have close-to-opposite blind spots — BM25 misses paraphrases entirely, dense sometimes under-weights exact rare terms. <strong>Hybrid search</strong> runs both independently, then fuses the two ranked lists with <strong>Reciprocal Rank Fusion (RRF)</strong>: convert each list's raw scores to ranks, then sum <code>1/(k + rank + 1)</code> for each document across both lists — a document ranked highly by either signal gets a real boost, without needing BM25's statistics and cosine similarity to be on comparable numeric scales at all.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rank_bm25</span><span class="w"> </span><span class="kn">import</span> <span class="n">BM25Okapi</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">demo_hybrid_fusion</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="sd">"""Fuses real BM25 and dense scores with Reciprocal Rank Fusion:</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="sd">    convert each list's raw scores to RANKS (0 = best), then sum</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="sd">    1/(k + rank + 1) across both lists per document — a document ranked</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="sd">    highly by either signal gets a real boost, without needing the two</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="sd">    scales (BM25 statistics, cosine similarity) to be comparable in</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="sd">    magnitude at all."""</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>    <span class="n">corpus</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>        <span class="s2">"My automobile has engine trouble"</span><span class="p">,</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>        <span class="s2">"Car insurance policy renewal"</span><span class="p">,</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="s2">"Best restaurants in the city"</span><span class="p">,</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="s2">"How to bake sourdough bread"</span><span class="p">,</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>        <span class="s2">"Weather forecast for next week"</span><span class="p">,</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>        <span class="s2">"Car maintenance schedule and tips"</span><span class="p">,</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="p">]</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Doc A"</span><span class="p">,</span> <span class="s2">"Doc B"</span><span class="p">,</span> <span class="s2">"Doc C"</span><span class="p">,</span> <span class="s2">"Doc D"</span><span class="p">,</span> <span class="s2">"Doc E"</span><span class="p">,</span> <span class="s2">"Doc F"</span><span class="p">]</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>    <span class="n">query</span> <span class="o">=</span> <span class="s2">"car problems"</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>    <span class="n">tokenized_corpus</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">corpus</span><span class="p">]</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="n">bm25</span> <span class="o">=</span> <span class="n">BM25Okapi</span><span class="p">(</span><span class="n">tokenized_corpus</span><span class="p">)</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>    <span class="n">bm25_scores</span> <span class="o">=</span> <span class="n">bm25</span><span class="o">.</span><span class="n">get_scores</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>    <span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"all-MiniLM-L6-v2"</span><span class="p">)</span>
+</span><span id="__span-8-29"><a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>    <span class="n">doc_vecs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">corpus</span><span class="p">,</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-8-30"><a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>    <span class="n">query_vec</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">encode</span><span class="p">([</span><span class="n">query</span><span class="p">],</span> <span class="n">convert_to_numpy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">show_progress_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="__span-8-31"><a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>    <span class="n">query_norm</span> <span class="o">=</span> <span class="n">query_vec</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">query_vec</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-8-32"><a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a>    <span class="n">doc_norm</span> <span class="o">=</span> <span class="n">doc_vecs</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">doc_vecs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-8-33"><a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a>    <span class="n">dense_scores</span> <span class="o">=</span> <span class="p">(</span><span class="n">query_norm</span> <span class="o">@</span> <span class="n">doc_norm</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="__span-8-34"><a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>
+</span><span id="__span-8-35"><a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a>    <span class="n">k</span> <span class="o">=</span> <span class="mi">60</span>
+</span><span id="__span-8-36"><a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a>    <span class="n">bm25_ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">bm25_scores</span><span class="p">)))</span>
+</span><span id="__span-8-37"><a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a>    <span class="n">dense_ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dense_scores</span><span class="p">)))</span>
+</span><span id="__span-8-38"><a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a>    <span class="n">fused_scores</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">bm25_ranks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="n">dense_ranks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">corpus</span><span class="p">))]</span>
+</span><span id="__span-8-39"><a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a>
+</span><span id="__span-8-40"><a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a>    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">fused_scores</span><span class="p">))</span>
+</span><span id="__span-8-41"><a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Fused ranking (RRF over real BM25 + real dense scores):"</span><span class="p">)</span>
+</span><span id="__span-8-42"><a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a>    <span class="k">for</span> <span class="n">rank</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+</span><span id="__span-8-43"><a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="s2">. </span><span class="si">{</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">  fused_score=</span><span class="si">{</span><span class="n">fused_scores</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">.5f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Fusing the exact BM25 and dense scores measured above:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>1. Doc A  fused_score=0.03227
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>2. Doc B  fused_score=0.03227
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>3. Doc F  fused_score=0.03226
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>4. Doc D  fused_score=0.03101
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>5. Doc C  fused_score=0.03078
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>6. Doc E  fused_score=0.03054
+</span></code></pre></div>
+<p>Fusion correctly pulls Doc A up from dead-last-tied-at-zero (BM25's ranking) into a shared first place — a real, measured win over BM25 alone. But look closely at the actual numbers: <strong>Doc A and Doc B are tied at 0.03227</strong>, five decimal places deep, not just close. That's not a coincidence specific to this corpus — it's the same structural property of RRF documented on the <a href="../multimodal-rag/#separate-indexes-rrf-fusion">Multimodal RAG</a> page: whichever document sits at rank 0 in <em>any</em> input list scores <code>1/(k+0+1)</code> from that list, identically, regardless of how much better or worse it actually is than the next-best candidate. Doc A is rank 0 in the dense list; Doc B is rank 0 in the BM25 list — different lists, same tied contribution. Fusion fixed the <em>ordering</em> problem (Doc A no longer loses to Doc B and Doc F outright) but didn't — and structurally can't — express that Doc A is a dramatically better match than Doc B, only that each is "the best" according to one signal.</p>
+<p><strong>Use hybrid + RRF for:</strong> the general default when you have both a lexical and a semantic retrieval signal available and don't want to hand-tune a weighted blend between two different score scales. <strong>Know its limit:</strong> RRF is a consensus mechanism across rankings, not a magnitude comparator — it can't let one signal's high-confidence pick outright outrank another signal's merely-present one, a limitation worth remembering anywhere fusion is used, not just here.</p>
+<h2 id="mteb-and-current-benchmarks-read-the-sub-score-not-the-badge">MTEB and current benchmarks — read the sub-score, not the badge<a class="headerlink" href="#mteb-and-current-benchmarks-read-the-sub-score-not-the-badge" title="Permanent link">&para;</a></h2>
+<p>The <a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a> is the standard place to compare embedding models, but it scores across many unrelated tasks at once — retrieval, classification, clustering, bitext mining, and more — and reports one blended overall rank. A model's overall position can be dragged up by strong classification or clustering performance while its retrieval sub-score, the only one that actually matters for RAG, is mediocre. The reverse happens too: a model tuned hard for retrieval can rank lower overall while being the better choice for your actual task.</p>
+<p><strong>Concretely:</strong> Qwen3-Embedding-8B topped MTEB's multilingual leaderboard overall score in mid-2025 — a genuinely strong result, worth taking seriously. But "topped the overall leaderboard" and "best retrieval model for my RAG system" are different claims. Before picking a model off the leaderboard, click into its retrieval sub-score specifically, and ideally run it against a small eval set built from your own domain — the same kind of Recall@k measurement every demo on this page uses, just pointed at your data instead of a sample PDF.</p>
+<h2 id="the-current-landscape-roughly">The current landscape, roughly<a class="headerlink" href="#the-current-landscape-roughly" title="Permanent link">&para;</a></h2>
+<p>Exact pricing and rankings shift constantly — check each provider's own documentation before committing — but the rough shape of the market as of this writing:</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Examples</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Proprietary, hosted API</strong></td>
+<td>OpenAI <code>text-embedding-3-small</code>/<code>-large</code>, Cohere <code>embed-v4</code>, Voyage AI's domain-specialized models, Google Gemini Embedding</td>
+<td>Zero infra to run; per-token pricing; several support Matryoshka truncation natively</td>
+</tr>
+<tr>
+<td><strong>Open-source, self-hostable, general</strong></td>
+<td>Qwen3-Embedding (0.6B/4B/8B, Matryoshka + instructions), <code>nomic-embed-text-v1.5</code> (Matryoshka, small enough for modest hardware), BGE-M3 (dense+sparse+multi-vector)</td>
+<td>No per-token cost, full data control, need your own GPU/CPU inference</td>
+</tr>
+<tr>
+<td><strong>Domain-specialized</strong></td>
+<td>Voyage's code/legal/finance models, various fine-tuned BGE/E5 variants</td>
+<td>Meaningfully better than general models on jargon-heavy text, at the cost of narrower applicability</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Practical starting point:</strong> for a self-hosted system with no strong domain-specialization need, <code>nomic-embed-text-v1.5</code> or a Qwen3-Embedding size matched to your hardware are reasonable open defaults — both Matryoshka-capable, both instruction-aware. For a hosted, zero-ops option, the current-generation OpenAI/Cohere/Google models are all reasonable general-purpose choices; benchmark the retrieval sub-score on your own data before committing either way, per the MTEB caveat above.</p>
+<h2 id="fine-tuning-why-when-and-how">Fine-tuning: why, when, and how<a class="headerlink" href="#fine-tuning-why-when-and-how" title="Permanent link">&para;</a></h2>
+<p><strong>Why it's sometimes necessary:</strong> every embedding model on this page was trained on broad, general text. A general model has learned a broad notion of "similar," but hasn't specifically learned that, say, "consideration" in a contract means something narrow and legal — not its everyday meaning — or that two support tickets describing the same underlying bug in completely different words are actually the same issue. When retrieval keeps missing in a way that traces back to domain vocabulary the model was never trained to distinguish, that's the specific signal fine-tuning addresses — not vague "the answers aren't great" dissatisfaction, but a demonstrated, domain-specific gap.</p>
+<p><strong>When to reach for it — and the order that actually matters:</strong> fine-tuning is one of the most expensive levers on this entire page. It needs labeled query-passage relevance data (real user clicks/feedback, domain experts hand-labeling pairs, or an LLM prompted to generate realistic queries for known passages), a training pipeline, and ongoing upkeep as the corpus evolves. Reach for it only after cheaper fixes are exhausted, in this order:</p>
+<ol>
+<li><strong>Try a better off-the-shelf model first</strong> — check its MTEB retrieval sub-score, ideally against a domain-relevant benchmark subset if one exists.</li>
+<li><strong>Add hybrid search</strong> (dense + BM25 or SPLADE) — often closes a large chunk of the "domain terminology" gap for free, since the lexical side catches exact-term matches the dense model never learned to generalize to.</li>
+<li><strong>Add reranking</strong> — a cross-encoder reranking the retrieved candidates corrects a lot of embedding imprecision without touching the embedding model at all.</li>
+<li><strong>Only fine-tune once 1-3 are in place and your own eval set still shows a real gap</strong> — and only if you can realistically get labeled data. Fine-tuning without labeled data to train <em>or evaluate</em> against is guessing twice.</li>
+</ol>
+<p><strong>How, concretely, using <code>sentence-transformers</code>:</strong></p>
+<ol>
+<li>Collect labeled pairs — at minimum (query, relevant_passage) positives; negatives can often be left implicit (see step 3).</li>
+<li>Pick an open model you can actually train — a closed API model (OpenAI, Cohere) can't be fine-tuned this way; start from something like <code>nomic-embed-text-v1.5</code> or a small Qwen3-Embedding size.</li>
+<li>Pick a loss. <strong><code>MultipleNegativesRankingLoss</code></strong> is the common practical default: it needs only positive pairs — every other example in the same training batch is treated as an implicit negative, which is far more data-efficient than hand-labeling explicit negatives. Contrastive and triplet losses (pulling known-relevant pairs together, pushing known-irrelevant pairs apart — the same pairwise-loss idea used to train <a href="../advanced-rag-post-retrieval/">cross-encoder rerankers</a>, a different kind of model that re-scores a shortlist of candidates by reading the query and each document together for precision, applied here to the embedding model instead) are the alternative when you do have labeled negatives.</li>
+<li>Fine-tune briefly — starting from a pretrained checkpoint, a small number of epochs on a modest labeled set typically goes further than expected; overtraining on a small dataset risks overfitting to it.</li>
+<li>Evaluate the fine-tuned model against the <em>same</em> Recall@k / retrieval-sub-score methodology used to justify picking up fine-tuning in the first place, on a held-out slice of your labeled data — never ship a fine-tuned model on faith that training "probably helped."</li>
+</ol>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformer</span><span class="p">,</span> <span class="n">SentenceTransformerTrainer</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers.sentence_transformer.losses</span><span class="w"> </span><span class="kn">import</span> <span class="n">MultipleNegativesRankingLoss</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">sentence_transformers.training_args</span><span class="w"> </span><span class="kn">import</span> <span class="n">SentenceTransformerTrainingArguments</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="n">model</span> <span class="o">=</span> <span class="n">SentenceTransformer</span><span class="p">(</span><span class="s2">"nomic-ai/nomic-embed-text-v1.5"</span><span class="p">,</span> <span class="n">trust_remote_code</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># Real labeled pairs go here — this is illustrative, not run against real data.</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="n">train_data</span> <span class="o">=</span> <span class="n">Dataset</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="s2">"anchor"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"What's the maximum liability cap in a standard indemnification clause?"</span><span class="p">],</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="s2">"positive"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"Indemnification clauses typically cap liability at the contract's total value..."</span><span class="p">],</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">})</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="n">trainer</span> <span class="o">=</span> <span class="n">SentenceTransformerTrainer</span><span class="p">(</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>    <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_data</span><span class="p">,</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>    <span class="n">loss</span><span class="o">=</span><span class="n">MultipleNegativesRankingLoss</span><span class="p">(</span><span class="n">model</span><span class="p">),</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>    <span class="n">args</span><span class="o">=</span><span class="n">SentenceTransformerTrainingArguments</span><span class="p">(</span><span class="n">output_dir</span><span class="o">=</span><span class="s2">"./fine-tuned-model"</span><span class="p">,</span> <span class="n">num_train_epochs</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="p">)</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Verified API, not a verified result</p>
+<p>The class names and import paths above are confirmed real and current against the installed <code>sentence-transformers</code> version — unlike every other code block on this page, this one hasn't been run against real labeled data or measured for a before/after Recall@k, since building a legitimate labeled training set was out of scope for this page. Treat it as a correct starting point for the training loop shape, not as evidence fine-tuning helped anything.</p>
+</div>
+<h2 id="ensembling-multiple-embedding-models">Ensembling multiple embedding models<a class="headerlink" href="#ensembling-multiple-embedding-models" title="Permanent link">&para;</a></h2>
+<p><strong>Why:</strong> a single embedding model is a single trade-off — general-purpose models cover broad phrasing well but miss domain nuance; domain-fine-tuned models nail the jargon but can be worse at everyday phrasing outside their training focus. Ensembling runs <strong>both</strong> and combines the results, rather than forcing one model to be good at everything.</p>
+<p><strong>How:</strong> embed and retrieve with each model independently, producing two separate ranked lists over the same chunks, then fuse those lists with <strong>RRF (Reciprocal Rank Fusion)</strong> — each chunk's fused score is the sum of <code>1/(k + rank)</code> across every list it appears in, so a chunk ranked highly by multiple sources wins over one that only one source liked. This is the identical fusion pattern used for <a href="../advanced-rag-pre-retrieval/#multi-query-retrieval-rag-fusion">multi-query retrieval</a> (merging results from several rephrasings of the same query) and <a href="./#hybrid-search-combining-bm25-and-dense-with-rrf">hybrid sparse+dense search</a> earlier on this page (merging BM25 and embedding results), just applied along a different axis here — multiple embedding models, instead of multiple query phrasings or multiple retrieval methods.</p>
+<p><strong>When it's worth the extra embedding cost:</strong> queries genuinely span both general and domain-specific phrasing in the same system (a support bot fielding both "how do I reset my password" and jargon-heavy enterprise-integration questions, say), and the cost of embedding every chunk twice is acceptable. <strong>When to skip it:</strong> a single well-chosen model already covers the query distribution well — ensembling adds real cost (double the embedding calls, double the index storage) for a benefit that only shows up when one model's blind spot is actually being hit in practice. Measure the gap on your own eval set before adding this complexity, same principle as fine-tuning above.</p>
+<h2 id="scenario-check">Scenario Check<a class="headerlink" href="#scenario-check" title="Permanent link">&para;</a></h2>
+<p>Six scenarios testing whether you can pick the right lever for a given symptom — the way this actually comes up in system design interviews and real incident postmortems.</p>
+<div class="quiz-widget" data-title="Scenario Check: Embedding Model Selection">
+<script type="application/json">
+{
+  "questions": [
+    {
+      "scenario": "A team migrates their embedding provider and re-indexes their entire knowledge base with the new model. Two weeks later, a hotfix accidentally reverts the query-embedding service to the old model, while the vector index still holds embeddings from the new model. No errors appear in any logs.",
+      "question": "What's the most likely symptom users actually experience?",
+      "options": [
+        "The system throws a dimension-mismatch error and stops serving queries until the mismatch is fixed.",
+        "Retrieval quality degrades — not necessarily to zero, but noticeably — because the query vectors and indexed vectors now live in different, only partially comparable spaces.",
+        "Nothing changes, since both models were trained on similar internet-scale text corpora.",
+        "The vector database automatically detects the version mismatch and blocks the query."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This is what happens with a genuine dimension mismatch (say, 384 vs. 768 dims) — a real and even easier-to-catch failure mode. But many embedding model upgrades keep the same output dimension, so a dimension mismatch isn't guaranteed here — and the measured result in this exact same-dimension scenario showed degraded, not crashed, recall.",
+        "Correct. This is exactly the measured finding: a same-dimension model mismatch dropped Recall@3 from 0.88 to 0.75 — real, noticeable degradation, but not a total collapse, and with no crash or error to flag it. That silence is what makes this bug dangerous in production.",
+        "Different models produce different, generally incomparable vector spaces even when trained on similar data — similarity in training data doesn't imply similarity in the resulting embedding geometry.",
+        "No mainstream vector database inspects embeddings for \"which model produced this\" — it has no way to know; this is a real gap teams have to guard against operationally (e.g., embedding model version tags in metadata, deploy-time checks), not something infrastructure catches automatically."
+      ]
+    },
+    {
+      "scenario": "A production RAG system stores 50 million chunk embeddings at 1024 dimensions in float32. Storage cost has become a real budget line item, and query latency is also creeping up as the index grows.",
+      "question": "Which single change addresses both problems at once, assuming the embedding model supports it?",
+      "options": [
+        "Switch to a different, smaller embedding model and re-embed everything from scratch.",
+        "Use Matryoshka truncation to drop to a smaller dimension (e.g. 256) — smaller vectors mean less storage AND faster similarity computation, without retraining or re-embedding from different model weights.",
+        "Fine-tune the existing model on the company's own data to make it more accurate.",
+        "Switch from cosine similarity to Euclidean distance for faster computation."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This would require a full re-embedding pass and carries real migration risk and cost — a much heavier lever than truncation, and not needed if the current model already supports Matryoshka.",
+        "Correct. If the model was Matryoshka-trained, truncating from 1024 to 256 dimensions cuts storage 4x and speeds up every similarity computation directly, without touching the model itself or re-embedding from a different architecture.",
+        "Fine-tuning targets accuracy, not storage or latency — it doesn't address either problem in the scenario, and doesn't reduce vector size at all.",
+        "The similarity metric choice doesn't change vector size or storage footprint — and using a metric the model wasn't optimized for can quietly hurt retrieval quality instead of helping."
+      ]
+    },
+    {
+      "scenario": "A team wants to cut their vector storage costs by 32x and considers binary quantization. Someone on the team argues this is basically the same lever as Matryoshka truncation, just \"more aggressive.\"",
+      "question": "Is that framing correct?",
+      "options": [
+        "Yes — both techniques reduce the amount of data stored per chunk, so they're interchangeable levers at different strengths.",
+        "No — Matryoshka reduces the number of dimensions; quantization reduces the number of bits used per dimension. They're separate, stackable levers, not the same technique at different intensities.",
+        "No — quantization is only usable with sparse embedding models, not dense ones.",
+        "Yes, but only for models that were NOT Matryoshka-trained."
+      ],
+      "correct": 1,
+      "explanations": [
+        "They both save storage, but through mechanically different means — conflating them risks missing that you can (and often should) apply both together for compounding savings, not pick one instead of the other.",
+        "Correct. Matryoshka changes how many dimensions exist; quantization changes how many bits represent each dimension that remains. A 768-dim binary vector and a 256-dim float32 vector both save storage, via completely different mechanisms — and you can combine them (truncate AND quantize) for even larger combined savings.",
+        "Quantization (as demonstrated via sentence-transformers' `precision` parameter) works directly on dense embeddings — int8 and binary precision are standard options for ordinary dense vectors, not sparse-only.",
+        "Quantization support has nothing to do with whether a model is Matryoshka-trained — they're independent, unrelated model capabilities that happen to compose well together."
+      ]
+    },
+    {
+      "scenario": "A team adopts Qwen3-Embedding and, to save one code path, decides to reuse the exact same instruction-prefix logic they already had working for nomic-embed-text-v1.5 in another project.",
+      "question": "What's wrong with this plan?",
+      "options": [
+        "Nothing — since both models are instruction-tuned, they should read instruction text the same general way, so reusing one convention on the other risks at most a minor wording mismatch.",
+        "The two models use genuinely different conventions: Qwen3-Embedding expects an instruction only on the query side, while nomic-embed-text-v1.5 expects a different short prefix on BOTH the query and the document side — reusing one model's convention for the other silently costs retrieval quality on whichever model gets the wrong treatment.",
+        "Qwen3-Embedding's instruction just needs to appear somewhere in the input, not specifically on the query side, so prefixing the passage instead would work just as well.",
+        "nomic-embed-text-v1.5 treats \"search_query: \" and \"search_document: \" as interchangeable labels for the same generic instruction, so using either one on either side works the same."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Being \"instruction-tuned\" doesn't imply a shared format — the two models differ in where the instruction goes, not just its wording. Reusing nomic's dual-prefix convention on Qwen3 adds an instruction to passages that were trained to stay plain, and reusing Qwen3's query-only convention on nomic means passages never get the \"search_document: \" prefix nomic expects — that's a structural mismatch, not a minor phrasing variance.",
+        "Correct. Qwen3-Embedding's documented convention is query-side-only instruction text; nomic-embed-text-v1.5's is a distinct prefix on each side (\"search_query: \" / \"search_document: \"). Applying the wrong one doesn't error — it just quietly underperforms, the same silent-failure pattern as the mismatched-model case.",
+        "Qwen3-Embedding's documented convention places the instruction specifically on the query side, with passages embedded plain — moving it to the passage side isn't an equivalent placement, it's outside the convention the model was actually trained and validated on.",
+        "nomic's convention assigns each prefix to a specific side on purpose — query text gets \"search_query: \", passage text gets \"search_document: \". Swapping them, or using only one for both sides, doesn't reproduce the representation the model was trained to expect on each side."
+      ]
+    },
+    {
+      "scenario": "A support team needs retrieval that handles both \"what's your refund policy\" (semantic match needed) and \"order #ORD-88213-A\" (exact lexical match needed, and this specific order ID never appeared anywhere in training data for any embedding model). Someone proposes using only a strong dense embedding model for everything.",
+      "question": "What's the likely failure mode, and what addresses it?",
+      "options": [
+        "No failure mode — modern dense embedding models handle arbitrary alphanumeric strings just as well as natural language semantic queries.",
+        "Dense embeddings are typically weak at exact, rare, alphanumeric matches like order IDs, since these carry little reusable semantic signal the model can generalize from — a learned sparse method (SPLADE) or classic lexical search (BM25) alongside dense retrieval covers this gap.",
+        "The fix is to fine-tune the dense model on every possible order ID before deployment.",
+        "This is only a problem for Matryoshka-truncated embeddings — full-dimension embeddings handle exact IDs fine."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Dense embeddings are trained to capture semantic/conceptual similarity — an arbitrary, rare identifier like an order number has essentially no semantic content for the model to generalize from, which is a real, well-documented weak spot, not a solved problem.",
+        "Correct. This is precisely the case for hybrid retrieval — combining dense (semantic) with sparse lexical methods (BM25's statistics, or SPLADE's learned term weighting) so exact/rare-term queries are covered by the lexical side while semantic queries are covered by the dense side.",
+        "Order IDs are generated continuously and can't be exhaustively enumerated for training — this doesn't scale and misses the structural point that dense embeddings aren't the right tool for this kind of exact match at all.",
+        "Truncation reduces dimensionality but doesn't change what the model was trained to represent in the first place — a full-dimension dense embedding has the same fundamental weakness on rare exact-match strings as a truncated one."
+      ]
+    },
+    {
+      "scenario": "A demo measures Recall@3 with and without a documented instruction prefix on a tiny 8-question eval set and finds no difference — 0.88 both ways — even though the model's own official documentation reports the prefix improves retrieval quality at benchmark scale.",
+      "question": "What's the most defensible conclusion?",
+      "options": [
+        "The documentation must be wrong, since the measured result contradicts it.",
+        "The prefix convention is genuinely real, but it's likely specific to the exact benchmark corpus nomic validated it on — an eval set built from different documents and questions, like this one, wouldn't be expected to show the same effect.",
+        "An 8-question eval set likely lacks the statistical power to reliably detect a real but modest effect — a null result on a tiny eval set doesn't disprove an effect measured at much larger benchmark scale.",
+        "The eval set is small, but eight questions is still enough data to trust; the more likely explanation is the prefix strings themselves were implemented slightly wrong, silently no-oping the convention."
+      ],
+      "correct": 2,
+      "explanations": [
+        "A single small demo contradicting a benchmark-scale finding is far more likely to be a sample-size limitation than proof the vendor's larger-scale evaluation is simply incorrect.",
+        "The prefix convention comes from how the model was trained on the input format itself, not from properties of one specific benchmark corpus — it isn't restricted to the corpus it was validated on. The real reason this eval shows no difference is the same one that applies everywhere else on this page: eight questions is too small a sample to reliably detect a modest, real effect, not a domain mismatch between corpora.",
+        "Correct. This is exactly the honest interpretation: small eval sets are good at catching large, obvious effects (a mismatched model, aggressive quantization) but unreliable for detecting smaller effects — reporting the null result plainly, rather than forcing a narrative, is the right call here.",
+        "Eight questions is genuinely too small to reliably detect a modest effect — the kind of statistical-power limitation the page calls out explicitly — so there's no need to reach for an implementation bug to explain a null result here. A coding error is possible in principle, but it isn't the more likely or more defensible explanation given how little power a sample this size has in the first place."
+      ]
+    }
+  ]
+}
+</script>
+</div>
+
+<h2 id="sources-further-reading">Sources &amp; further reading<a class="headerlink" href="#sources-further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://huggingface.co/spaces/mteb/leaderboard">MTEB Leaderboard</a> — the standard embedding benchmark; check the retrieval sub-score specifically</li>
+<li><a href="https://qwenlm.github.io/blog/qwen3-embedding/">Qwen3 Embedding: Advancing Text Embedding and Reranking Through Foundation Models</a> — instruction format, Matryoshka support, model sizes</li>
+<li><a href="https://huggingface.co/nomic-ai/nomic-embed-text-v1.5">nomic-embed-text-v1.5</a> — Matryoshka truncation levels, <code>search_query</code>/<code>search_document</code> prefix convention</li>
+<li><a href="https://huggingface.co/BAAI/bge-m3">BGE-M3</a> — dense + sparse + multi-vector (ColBERT-style) from one model</li>
+<li><a href="https://arxiv.org/pdf/2408.16672">Jina-ColBERT-v2: A General-Purpose Multilingual Late Interaction Retriever</a> — late-interaction / multi-vector retrieval background</li>
+<li><a href="https://dl.acm.org/doi/10.1145/3404835.3463098">SPLADE: Sparse Lexical and Expansion Model for First Stage Ranking</a> — the original learned sparse retrieval paper</li>
+<li><a href="https://sbert.net/examples/sentence_transformer/applications/embedding-quantization/README.html">Sentence Transformers: Quantization</a> — <code>precision</code> parameter, int8/binary embeddings, rescoring pattern</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dhruvmakwana" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.indexes", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/quiz.js"></script>
+      
+        <script src="../javascripts/flashcards.js"></script>
+      
+    
+  </body>
+</html>

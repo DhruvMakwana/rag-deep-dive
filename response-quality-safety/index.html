@@ -1,0 +1,2721 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deep-dive reference on Retrieval-Augmented Generation — architectures, chunking, retrieval, evaluation, and production engineering.">
+      
+      
+        <meta name="author" content="Dhruv Makwana">
+      
+      
+        <link rel="canonical" href="https://dhruvmakwana.github.io/rag-deep-dive/response-quality-safety/">
+      
+      
+        <link rel="prev" href="../vector-databases/">
+      
+      
+        <link rel="next" href="../evaluation-metrics/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/favicon.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Response Quality & Safety - RAG, Deep Dive</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="../stylesheets/quiz.css">
+    
+      <link rel="stylesheet" href="../stylesheets/flashcards.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#response-quality-safety" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="RAG, Deep Dive" class="md-header__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RAG, Deep Dive
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Response Quality & Safety
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="deep-purple"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="white" data-md-color-accent="deep-purple"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../revision/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Revision
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../naive-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Foundations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../modular-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Architectures
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../vision-rag/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Specialized RAG
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../chunking/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Retrieval Engineering
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Evaluation & Production
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../case-studies/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Case Studies
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials & Code
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RAG, Deep Dive" class="md-nav__button md-logo" aria-label="RAG, Deep Dive" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    RAG, Deep Dive
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/dhruvmakwana/rag-deep-dive" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    dhruvmakwana/rag-deep-dive
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../revision/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Revision
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Foundations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Foundations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../naive-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Naive RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-pre-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Pre-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced-rag-post-retrieval/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced RAG — Post-retrieval
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architectures
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architectures
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../modular-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modular RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../self-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrective-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Corrective RAG (CRAG)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agentic-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agentic RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graph-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specialized RAG
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specialized RAG
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vision-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vision-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multimodal-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multimodal RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../video-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Video-RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CAG (Cache-Augmented Generation)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pageindex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PageIndex
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Engineering
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Retrieval Engineering
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../chunking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chunking Strategies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../embedding-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Embedding Model Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../retrieval-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retrieval Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vector-databases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vector Databases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation & Production
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evaluation & Production
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Response Quality & Safety
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Response Quality & Safety
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hallucination-mitigation-in-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hallucination mitigation in RAG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guardrails-current-tools-and-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guardrails: current tools and mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompt-injection-the-rag-specific-angle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompt injection: the RAG-specific angle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-safety-and-pii-in-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output safety and PII in RAG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../evaluation-metrics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ragas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RAGAS Deep Dive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../production-considerations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Production Considerations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../case-studies/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Case Studies
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8" id="__nav_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Case Studies
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-turbopuffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion → turbopuffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-vector-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber: Billion-Scale Vector Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/airbnb-ivf-hnsw/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airbnb: IVF over HNSW
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/spotify-voyager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spotify: Annoy → Voyager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/github-copilot-embeddings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GitHub Copilot's Embedding Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/linkedin-graphrag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinkedIn's GraphRAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dropbox-dash/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dropbox Dash: RAG to Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/sourcegraph-cody/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sourcegraph Cody
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/klarna-ai-assistant/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Klarna's AI Assistant
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/uber-querygpt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uber QueryGPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/perplexity-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Perplexity's Hybrid Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/shopify-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shopify's Real-Time Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/dust-prompt-caching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dust: Tiered Prompt Caching
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/anthropic-eval-postmortem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Anthropic's Eval Postmortem
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/notion-braintrust-evals/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notion's Dual-Track Evals
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/echoleak/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EchoLeak: Zero-Click Injection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/constitutional-classifiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Constitutional Classifiers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../case-studies/harvey-document-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Harvey AI: Document Processing at Scale
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials & Code
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_9" id="__nav_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials & Code
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/naive-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Naive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-rag-from-scratch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build Adaptive RAG From Scratch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/multi-doc-production-rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Document Production RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hallucination-mitigation-in-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hallucination mitigation in RAG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guardrails-current-tools-and-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guardrails: current tools and mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompt-injection-the-rag-specific-angle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompt injection: the RAG-specific angle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-safety-and-pii-in-rag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output safety and PII in RAG
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenario-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scenario Check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources &amp; further reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="response-quality-safety">Response Quality &amp; Safety<a class="headerlink" href="#response-quality-safety" title="Permanent link">&para;</a></h1>
+<p>RAG systems fail in ways plain chatbots don't, and get evaluated on axes plain chatbots don't need: whether an answer is actually grounded in what was retrieved, whether a document silently smuggled in an instruction the model shouldn't follow, and whether a chunk that belongs to one user leaks into another user's answer. This page covers hallucination mitigation, guardrails, RAG-specific prompt injection, and output/PII safety — current tools and current incidents, not a generic AI-safety checklist.</p>
+<details class="abstract">
+<summary>TL;DR — quick revision</summary>
+<ul>
+<li><strong>Aggregate faithfulness scores hide per-claim hallucination</strong> — a response with 5 claims and 1 fabricated detail can still average ~0.8 on a faithfulness metric; the fix is claim-level decomposition (what <a href="../ragas/#the-four-metrics-precise-mechanics">RAGAS's Faithfulness metric</a> already does), not a single answer-level verdict</li>
+<li><strong>Anthropic's Citations API grounds <em>attribution<em>, not </em>truth</em></strong> — it guarantees a claim came from an exact source passage, not that the claim is correct; a 2025 OpenAI/Georgia Tech paper argues hallucination persists because training-time benchmarks reward confident guessing over calibrated "I don't know" answers</li>
+<li><strong>RAG's prompt-injection surface is the retrieved content itself</strong>, not just the user's message — EchoLeak (CVE-2025-32711) was a real, zero-click production exploit where a hidden instruction in an unopened email got pulled into Microsoft 365 Copilot's context and exfiltrated data</li>
+<li><strong>Retrieval-time access control must be a hard metadata filter at the database layer, not a prompt instruction</strong> — the LLM cannot be relied on as a security boundary for content it was never supposed to see in the first place</li>
+</ul>
+</details>
+<h2 id="hallucination-mitigation-in-rag">Hallucination mitigation in RAG<a class="headerlink" href="#hallucination-mitigation-in-rag" title="Permanent link">&para;</a></h2>
+<p>Giving a model correct retrieved context doesn't guarantee it uses that context faithfully. It can still ignore correct context and answer from parametric memory, blend a real retrieved fact with a fabricated detail in the same sentence, or misattribute a claim to the wrong source. RAG lowers hallucination risk by grounding generation in retrieved evidence — it doesn't eliminate it.</p>
+<p><strong>Aggregate metrics create a false sense of safety.</strong> A response with five claims and one fabricated detail still scores roughly 0.8 on an averaged, answer-level faithfulness check — a dashboard can show 92% aggregate faithfulness while the true per-claim hallucination rate sits around 18%. Current research on this points toward claim-level decomposition rather than a single yes/no verdict per answer, which is exactly how <a href="../ragas/#the-four-metrics-precise-mechanics">RAGAS's Faithfulness metric</a> works: decompose the response into atomic claims, check each one individually against retrieved context, and score supported-claims ÷ total-claims — a graded signal instead of one binary judgment that loses which specific claim is the problem. A newer variant, <code>FaithfulnessWithHHEM</code>, swaps the LLM-as-judge step for <a href="https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/">Vectara's HHEM-2.1-Open</a> — a purpose-built entailment classifier — specifically to avoid using an LLM to judge another LLM's output.</p>
+<p><strong>Citation and attribution.</strong> <a href="https://platform.claude.com/docs/en/build-with-claude/citations">Anthropic's Citations API</a> (GA since mid-2025, also available on AWS Bedrock and other platforms) lets a model return character-level spans pointing to the exact source sentence behind each claim in its answer. The distinction worth being precise about in an interview: this grounds <em>attribution</em>, not <em>truth</em> — it guarantees "this text came from this exact passage," not "this claim is correct." A model can still misquote or misinterpret a passage it faithfully cites, or cite a passage that only partially supports the specific claim next to it. It's also retrieval-agnostic: the application still has to do retrieval itself; Citations only handles the "show your work" step afterward.</p>
+<p><strong>Uncertainty-based detection.</strong> The original semantic entropy method detects hallucination by sampling many generations for the same query, clustering them by meaning, and measuring entropy across the clusters — high semantic entropy means the model is confabulating rather than converging on an answer. That's expensive (5–10× the inference cost for the extra samples). <a href="https://arxiv.org/abs/2406.15927">Semantic Entropy Probes</a> (Kossen et al., 2024) train a cheap linear probe directly on a single generation's hidden states to approximate the same signal without the sampling overhead. A 2025 RAG-specific extension, <a href="https://arxiv.org/pdf/2505.07528">SEReDeEP</a>, fuses this kind of entropy signal with a second signal distinguishing context-usage from parametric-memory-usage — closer to directly detecting the "ignored good context and answered from memory instead" failure mode this site has measured directly in <a href="../ragas/#putting-the-four-metrics-together-diagnosing-a-rag-system">RAGAS Deep Dive</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">The root-cause argument: it's a training-incentive problem, not just a missing detector</p>
+<p>A September 2025 paper from OpenAI and Georgia Tech, <a href="https://arxiv.org/abs/2509.04664">"Why Language Models Hallucinate"</a>, argues hallucinations are ordinary binary classification errors: if a model can't statistically distinguish a true statement from a false one during pretraining, producing false statements is the expected consequence, not a mysterious failure. Its sharper claim is that hallucination <em>persists</em> after training because the benchmarks models are optimized against reward confident guessing over admitting uncertainty — like a multiple-choice exam where guessing beats leaving an answer blank. The paper's proposed fix is to change how existing benchmarks are scored (penalize confident wrong answers more than calibrated "I don't know," rather than inventing another hallucination leaderboard) — a training-time, incentive-design fix, in contrast to every other technique on this page, which operates at inference time.</p>
+</div>
+<h2 id="guardrails-current-tools-and-mechanics">Guardrails: current tools and mechanics<a class="headerlink" href="#guardrails-current-tools-and-mechanics" title="Permanent link">&para;</a></h2>
+<p>Guardrails work best as checkpoints at each pipeline stage, not one blanket filter: <strong>input</strong> (validate the query before retrieval — off-topic detection, PII, injection attempts), <strong>retrieval</strong> (access-control filtering as a hard metadata constraint, covered in detail below), <strong>output</strong> (toxicity, PII leakage, policy violations before a response reaches the user), and <strong>tool/action</strong> (for agentic RAG — human-in-the-loop confirmation for anything irreversible).</p>
+<p><strong>NVIDIA NeMo Guardrails</strong> (<a href="https://docs.nvidia.com/nemo/guardrails/">docs</a>, <a href="https://github.com/NVIDIA-NeMo/Guardrails">GitHub</a>) defines programmable "rails" — input, dialogue, retrieval, output, and execution — using Colang, a small domain-specific language, so a policy like "never discuss competitor pricing" or "reject retrieved content matching an injection pattern" is expressed as a flow the framework checks around every LLM call, rather than baked into the prompt itself.</p>
+<p><strong>Meta's Llama Guard 4</strong> (<a href="https://huggingface.co/meta-llama/Llama-Guard-4-12B">model card</a>) is the current generation — a 12B multimodal safety classifier that scores both prompts (before the main LLM sees them) and generated responses (after) against a 14-category harm taxonomy, with per-category opt-out. It unified what used to be two separate text- and vision-specific Llama Guard 3 models. <strong>Prompt Guard 2</strong> (<a href="https://huggingface.co/meta-llama/Llama-Prompt-Guard-2-86M">model card</a>), a much smaller 86M (or 22M, for lower latency) classifier, is specifically for detecting jailbreak/injection-style text — small enough to run as a pre-filter over every retrieved chunk, not just the user's own message, which is exactly the RAG-relevant use case. <strong>Code Shield</strong>, the third piece of Meta's PurpleLlama toolkit, screens LLM-generated code for insecure patterns before it's executed or shown, relevant wherever a RAG system's output feeds into code execution.</p>
+<p><strong>Guardrails AI</strong> (<a href="https://guardrailsai.com/docs">docs</a>) wraps LLM calls in a <code>Guard</code> object with attached <code>Validator</code>s (PII detection, toxicity, jailbreak detection, and others) that can <code>fix</code>, <code>reask</code>, <code>filter</code>, or hard-fail on a violation. It's mid-migration away from its hosted Hub toward plain pip-installable validator packages, with the old hosted-inference path fully sunsetting August 25, 2026 — worth checking which install path a given tutorial assumes before following it.</p>
+<div class="admonition note">
+<p class="admonition-title">Spotlighting: tagging retrieved content as lower-trust, not filtering it out</p>
+<p>Microsoft's Azure AI Content Safety ships <strong>Prompt Shields</strong>, which separately detects direct attacks (a user trying to override system instructions) and <em>document</em> attacks — hidden instructions embedded in third-party content like retrieved documents, emails, or tool output, scanned at both the input and tool-response stage. Its <strong>Spotlighting</strong> feature (preview) is the piece most specific to RAG: it transforms retrieved document content into base64 before it reaches the model, which marks that content as structurally distinct from direct instructions and makes embedded commands harder to parse as authoritative. The trade-offs are real: base64 inflates token count (cost, and can blow context limits on long documents), it's Chat-Completions-API-only, off by default, and the model occasionally starts narrating that content is base64-encoded in its own answers. <a href="https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection">Docs →</a></p>
+</div>
+<p><strong>OpenAI's Moderation API</strong> is now solely <code>omni-moderation-latest</code>, a GPT-4o-based multimodal (text + image) classifier, free to call — the older text-only moderation model was retired in late 2025.</p>
+<p>A guardrail layered around a model, rather than baked into its weights, can be independently measured and cost-optimized the same way any other production system can — <a href="../case-studies/constitutional-classifiers/">Anthropic's own Constitutional Classifiers went through two full generations in production</a>, cutting compute overhead roughly 40× while cutting false-positive refusals 87%, with real red-teaming numbers behind both claims.</p>
+<h2 id="prompt-injection-the-rag-specific-angle">Prompt injection: the RAG-specific angle<a class="headerlink" href="#prompt-injection-the-rag-specific-angle" title="Permanent link">&para;</a></h2>
+<p>In a plain chatbot, the only attacker-controlled channel into the model's context is the user's own message — an attacker has no incentive to inject something malicious into a prompt only they will read. RAG changes this: part of the model's context comes from documents the current user never wrote and may not have chosen — search results, scraped pages, other users' shared documents, tool output. Any of those can carry a natural-language instruction planted by an attacker, and unless the pipeline explicitly marks that content as lower-trust (Spotlighting, provenance tracking, or a structural defense like CaMeL below), the model has no built-in way to tell it apart from a legitimate instruction.</p>
+<p>This isn't theoretical. The <a href="https://aclanthology.org/2024.findings-acl.624/">InjecAgent benchmark</a> (ACL 2024), testing tool-using agents against indirect injection delivered through tool output, found ReAct-prompted GPT-4 vulnerable <strong>24% of the time</strong> — and higher when the injected instruction used simple reinforcement tricks like repetition.</p>
+<div class="admonition success">
+<p class="admonition-title">EchoLeak: the first documented zero-click indirect injection in a production system</p>
+<p><a href="https://arxiv.org/abs/2509.10540">CVE-2025-32711</a>, CVSS 9.3 — privately reported to Microsoft in January 2025, patched server-side in May 2025, and publicly disclosed June 11, 2025. An attacker sends a victim a single, unsolicited email containing a prompt-injection payload phrased as ordinary business prose — the victim never has to open or interact with it. Later, when the victim asks Microsoft 365 Copilot an unrelated question, Copilot's own RAG retrieval pulls the malicious email into context because it looks semantically relevant, and the model executes the embedded instructions. The exploit chained four separate bypasses to achieve zero-click exfiltration — evading Microsoft's cross-prompt-injection classifier, defeating link redaction via reference-style Markdown, using an auto-fetched image tag instead of a clickable link, and routing through Microsoft's own CSP-allowlisted Teams proxy — a pattern researchers termed "LLM scope violation": untrusted data influencing behavior beyond the scope it should be confined to. It's the first documented real-world (not red-team) case of RAG-delivered indirect injection achieving actual data exfiltration. <a href="../case-studies/echoleak/">Full case study →</a></p>
+</div>
+<p><strong>CaMeL</strong> (<a href="https://arxiv.org/abs/2503.18813">Google DeepMind, 2025</a>) is a structural answer to the same problem, not another prompt-level mitigation. It splits the agent into a <strong>Privileged LLM</strong> that only ever sees the trusted user query and produces a plan as restricted, code-like structure (not free text), and a <strong>Quarantined LLM</strong> with no tool-calling capability at all, whose only job is extracting structured values out of untrusted data when the plan calls for it. A custom interpreter attaches provenance metadata ("capabilities") to every value as it flows through the plan, and enforces policies like "never call <code>send_email</code> if the recipient's value ever touched untrusted data" — regardless of what the generated code appears to want to do. On the AgentDojo benchmark, CaMeL solved 77% of tasks with provable security guarantees versus 84% for an undefended baseline — a real but bounded capability cost for a structural, not probabilistic, defense.</p>
+<p><strong>Where RAG risk sits in OWASP's current taxonomy.</strong> The <a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications (2025)</a> gives RAG-relevant risk two dedicated categories that didn't exist in the prior list: <strong>LLM01 Prompt Injection</strong> (explicitly naming indirect injection via retrieved content as a subtype), <strong>LLM02 Sensitive Information Disclosure</strong>, and <strong>LLM08 Vector and Embedding Weaknesses</strong> — covering embedding inversion, cross-tenant retrieval leakage, and corpus poisoning. LLM08 being new is itself a signal: OWASP's own view is that RAG's data layer earned a category of its own.</p>
+<h2 id="output-safety-and-pii-in-rag">Output safety and PII in RAG<a class="headerlink" href="#output-safety-and-pii-in-rag" title="Permanent link">&para;</a></h2>
+<p>The RAG-specific version of a PII leak doesn't require the current user's query to contain any PII at all — the leak originates from the retrieved side. A chunk belonging to a different customer or tenant can end up in context, and unless retrieval is permission-filtered, the model will synthesize it into an answer for the wrong person just as readily as it would any other retrieved fact.</p>
+<p><strong>The structurally correct fix is retrieval-time access control</strong>, enforced as a hard metadata filter in the vector search call itself — not a prompt instruction telling the model to "be careful," which relies on the LLM as a security boundary it was never designed to be. Each chunk is tagged at ingestion with metadata mirroring the source system's real ACLs (allowed users, groups, tenant ID), and that metadata filters the similarity search before results ever reach the model — the same metadata-filtering mechanism covered in depth on the <a href="../vector-databases/#pinecone-cloud-only-documented-here-but-not-run">Vector Databases</a> page, and only as strong as the isolation guarantees of whichever multi-tenancy pattern (namespace-per-tenant, shared index with filtering, or index-per-tenant) that page describes. In practice this is necessary but not sufficient: filters fail silently when a source system's ACLs are stale or incompletely synced into vector metadata, which is why some architectures add a second layer — entity-level re-verification that strips over-permissioned content even after a chunk clears the coarse document-level filter — and choose between pre-filtering (apply the ACL filter before the similarity search, efficient when authorized content is a small fraction of the corpus) and post-filtering (search first, drop unauthorized hits after, fine when it isn't).</p>
+<p><strong>Output-side scanning is defense-in-depth, not a substitute for the above.</strong> <a href="https://github.com/microsoft/presidio">Microsoft Presidio</a> (open source) runs NER-plus-regex detection and redaction/masking, and the recommended pattern runs it at three points — on the incoming query, on each retrieved chunk before it enters the prompt, and again on the model's final output — rather than trusting a single checkpoint. Presidio's own documentation is explicit that "there is no guarantee Presidio will find all sensitive information," which is exactly why it sits alongside retrieval-time ACLs rather than replacing them. Commercial alternatives (Nightfall AI, AWS Comprehend PII detection, Google Cloud DLP) offer the same detect-and-redact pattern as a managed API, increasingly integrated at the agent-gateway level rather than called ad hoc.</p>
+<h2 id="scenario-check">Scenario Check<a class="headerlink" href="#scenario-check" title="Permanent link">&para;</a></h2>
+<div class="quiz-widget" data-title="Scenario Check: Response Quality & Safety">
+<script type="application/json">
+{
+  "questions": [
+    {
+      "scenario": "A team's RAG system reports an aggregate faithfulness score of 0.92 across their eval set, and they conclude hallucination isn't a significant problem for their system.",
+      "question": "Based on this page, what's the risk with drawing that conclusion from an aggregate score alone?",
+      "options": [
+        "The score is a direct, reliable ceiling on hallucination -- since faithfulness is computed by averaging per-claim checks, a 0.92 aggregate already guarantees no more than roughly 8% of individual claims across the eval set are unsupported.",
+        "An aggregate, answer-level faithfulness score can hide a much higher per-claim hallucination rate, since a response with several correct claims and one fabricated detail still averages to a high score -- claim-level decomposition (like RAGAS's Faithfulness metric) is needed to see the real picture.",
+        "The right fix is to raise the faithfulness threshold the team treats as acceptable (e.g. requiring 0.99 instead of 0.92), since the underlying aggregate metric itself is sound.",
+        "A 0.92 score means the system is hallucinating on 92% of responses, which the team should treat as a major problem."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This inverts what an average tells you: the page's own example shows the opposite can hold -- a 0.92 aggregate is consistent with per-claim hallucination running much higher (its dashboard example: ~92% aggregate alongside a true ~18% per-claim rate), precisely because an average doesn't bound the worst individual cases.",
+        "Correct. This page's own example: a response with 5 claims and 1 fabricated detail can still average around 0.8 on an aggregate check, and real dashboards can show ~92% aggregate faithfulness while true per-claim hallucination sits around 18% -- claim-level decomposition is the fix, not the aggregate number itself.",
+        "Raising the bar on the same aggregate number doesn't address the actual problem this page identifies -- the issue isn't that 0.92 is too low a bar, it's that any single answer-level average can hide which specific claims are unsupported; the page's fix is claim-level decomposition, not a stricter cutoff on the same kind of score.",
+        "A 0.92 aggregate faithfulness score means roughly 92% of decomposed claims were found supported on average -- it does not mean 92% of responses are hallucinated; that inverts what the metric measures."
+      ]
+    },
+    {
+      "scenario": "A team adopts Anthropic's Citations API for their RAG system and believes that because every claim in their generated answers now comes with a citation to an exact source passage, factual errors are no longer possible.",
+      "question": "Per this page, what's inaccurate about that belief?",
+      "options": [
+        "Citations API works by having the model re-verify each claim against a live entailment classifier before returning the response, so any claim that fails verification gets suppressed automatically.",
+        "Citations API guarantees attribution -- that a piece of text came from an exact source passage -- not truth; the model can still misquote or misinterpret a passage it faithfully cites, or cite a passage that only partially supports the specific claim next to it.",
+        "Citations API requires documents to be retrieved through Anthropic's own hosted search index before it can attribute claims to them, so a pipeline doing its own custom retrieval would need to switch to that index first.",
+        "Citations API automatically fact-checks every claim against a live web search before returning a response."
+      ],
+      "correct": 1,
+      "explanations": [
+        "Citations API doesn't run any truth-verification or entailment check on claims -- it does something narrower: returning character-level spans showing which passage a claim came from. The correct answer's point is that this is attribution, not a verification step that would suppress unsupported claims.",
+        "Correct. This page states this distinction explicitly: Citations grounds attribution (this text came from this exact passage), not truth (this claim is correct) -- a model can still misquote or misinterpret a faithfully-cited passage.",
+        "This page notes the opposite: Citations API is retrieval-agnostic -- the application still performs its own retrieval however it chooses; Citations only attaches attribution to whatever was actually used in the response, regardless of where or how those documents were retrieved.",
+        "Nothing in this page describes Citations API performing live fact-checking -- it attributes claims to source passages already provided to the model, it doesn't verify those passages against external truth."
+      ]
+    },
+    {
+      "scenario": "A team building a multi-tenant RAG system decides to handle document-level access control entirely by instructing the model in the system prompt: 'Only answer using information the current user is authorized to see.'",
+      "question": "Based on this page's treatment of RAG-specific PII risk, what's the problem with this approach?",
+      "options": [
+        "This is a reasonable primary control, since instructing the model directly on authorization rules is how this page recommends handling document-level access control.",
+        "Prompt instructions rely on the LLM as a security boundary it wasn't designed to be -- the structurally correct fix is a hard metadata filter enforced at the vector search/database layer, so unauthorized chunks are never retrieved into context in the first place.",
+        "Relevance-based retrieval already provides a meaningful degree of access control, since a chunk belonging to a different tenant is unlikely to be semantically similar enough to a given user's query to surface in the top results.",
+        "Output-side scanning tools like Presidio are the more robust fix here, since catching unauthorized content in the model's final output is a more direct check than filtering earlier at retrieval time."
+      ],
+      "correct": 1,
+      "explanations": [
+        "This page frames prompt-instruction-only access control as insufficient, not as the primary recommended mechanism -- the recommended primary control is a hard metadata filter enforced at the vector-search layer, before content ever reaches the model.",
+        "Correct. This page states this directly: access control must happen as a hard metadata filter in the vector search call itself, so the LLM never even sees unauthorized content -- not as an instruction the model is trusted to self-enforce.",
+        "This page's whole framing for this section is the opposite: a chunk from a different tenant absolutely can be semantically relevant enough to surface in results -- relevance and authorization are independent properties, which is exactly why relying on retrieval's own relevance ranking as an access-control mechanism is the real risk being described.",
+        "This page frames it the other way around: output-side scanning (like Presidio) is explicitly defense-in-depth, not the primary or more robust fix -- Presidio's own documentation is quoted as offering no guarantee of catching everything, which is exactly why retrieval-time metadata filtering has to be the structural, primary control."
+      ]
+    }
+  ]
+}
+</script>
+</div>
+
+<h2 id="sources-further-reading">Sources &amp; further reading<a class="headerlink" href="#sources-further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/">RAGAS Faithfulness metric</a> — the claim-level decomposition approach referenced above, with real measured numbers in <a href="../ragas/">RAGAS Deep Dive</a></li>
+<li><a href="https://platform.claude.com/docs/en/build-with-claude/citations">Anthropic Citations API</a></li>
+<li>Kossen et al., <a href="https://arxiv.org/abs/2406.15927">Semantic Entropy Probes</a> (2024)</li>
+<li><a href="https://arxiv.org/pdf/2505.07528">SEReDeEP: Hallucination Detection in RAG via Semantic Entropy</a> (2025)</li>
+<li>Kalai, Nachum, Zhang, Vempala, <a href="https://arxiv.org/abs/2509.04664">Why Language Models Hallucinate</a> (OpenAI/Georgia Tech, 2025)</li>
+<li><a href="https://docs.nvidia.com/nemo/guardrails/">NVIDIA NeMo Guardrails</a></li>
+<li><a href="https://huggingface.co/meta-llama/Llama-Guard-4-12B">Meta Llama Guard 4</a> and <a href="https://huggingface.co/meta-llama/Llama-Prompt-Guard-2-86M">Prompt Guard 2</a></li>
+<li><a href="https://guardrailsai.com/docs">Guardrails AI documentation</a></li>
+<li><a href="https://learn.microsoft.com/en-us/azure/ai-services/content-safety/concepts/jailbreak-detection">Azure AI Content Safety: Prompt Shields and Spotlighting</a></li>
+<li><a href="https://aclanthology.org/2024.findings-acl.624/">InjecAgent benchmark</a> (ACL 2024)</li>
+<li><a href="https://arxiv.org/abs/2509.10540">EchoLeak / CVE-2025-32711 academic writeup</a></li>
+<li>Google DeepMind, <a href="https://arxiv.org/abs/2503.18813">CaMeL: Defeating Prompt Injections by Design</a> (2025)</li>
+<li><a href="https://genai.owasp.org/llm-top-10/">OWASP Top 10 for LLM Applications (2025)</a></li>
+<li><a href="https://github.com/microsoft/presidio">Microsoft Presidio</a></li>
+<li><a href="https://www.pinecone.io/learn/rag-access-control/">Pinecone: RAG with Access Control</a></li>
+<li><a href="../vector-databases/#pinecone-cloud-only-documented-here-but-not-run">Vector Databases</a> — the multi-tenancy isolation patterns this page's access-control section builds on</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/dhruvmakwana" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "navigation.indexes", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../javascripts/quiz.js"></script>
+      
+        <script src="../javascripts/flashcards.js"></script>
+      
+    
+  </body>
+</html>
