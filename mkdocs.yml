@@ -96,9 +96,6 @@ extra_javascript:
 
 extra:
   social:
-    - icon: fontawesome/solid/id-badge
-      link: about/
-      name: About
     - icon: fontawesome/brands/github
       link: https://github.com/dhruvmakwana
 
@@ -156,3 +153,4 @@ nav:
       - Build Naive RAG From Scratch: tutorials/naive-rag-from-scratch.md
       - Build Adaptive RAG From Scratch: tutorials/advanced-rag-from-scratch.md
       - Multi-Document Production RAG: tutorials/multi-doc-production-rag.md
+  - About: about.md
