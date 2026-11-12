@@ -50,7 +50,7 @@ jinaai/jina-clip-v2                  0.75            2/4   <- winner
 The sample "Attention Is All You Need" PDF has 3 embedded diagrams — the overall encoder-decoder architecture, the scaled dot-product attention mechanism, and multi-head attention — extracted directly, not substituted with stock images:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multimodal-rag/multimodal_rag_docs.py:extraction"
+--8<-- "snippets/rag-cookbook/multimodal-rag/multimodal_rag_docs.py:extraction"
 ```
 
 ### The unified approach
@@ -58,7 +58,7 @@ The sample "Attention Is All You Need" PDF has 3 embedded diagrams — the overa
 Everything — text chunks and images alike — goes into one shared embedding space (`jina-clip-v2`, the winner measured above), so a single similarity ranking can return either kind of result:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multimodal-rag/multimodal_rag_docs.py:unified"
+--8<-- "snippets/rag-cookbook/multimodal-rag/multimodal_rag_docs.py:unified"
 ```
 
 !!! warning "Measured: a real cost to plain-text retrieval, even with the best model tested"
@@ -86,7 +86,7 @@ Everything — text chunks and images alike — goes into one shared embedding s
 Text goes through the dedicated embedder (full retrieval quality preserved); images go through CLIP (the only place CLIP is actually needed); the two independently-ranked lists get combined with Reciprocal Rank Fusion — the same RRF used for [multi-query/RAG-Fusion](advanced-rag-pre-retrieval.md#multi-query-retrieval-rag-fusion) elsewhere on this site:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multimodal-rag/multimodal_rag_docs.py:separate_fusion"
+--8<-- "snippets/rag-cookbook/multimodal-rag/multimodal_rag_docs.py:separate_fusion"
 ```
 
 !!! success "Measured: correctly retrieves the right modality for each question type"

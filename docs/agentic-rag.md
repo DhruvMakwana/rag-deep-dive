@@ -19,7 +19,7 @@ Every prior "routing" technique on this site worked by asking an LLM to output a
 Here are the four tools this agent gets to choose from, each one a technique already built and measured on its own page elsewhere on this site:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/agentic-rag/agentic_rag_docs.py:tools"
+--8<-- "snippets/rag-cookbook/agentic-rag/agentic_rag_docs.py:tools"
 ```
 
 Notice what's actually doing the routing work here: not a classifier prompt, not a set of rules — just the `description` field on each tool. The model reads these the same way it would read documentation for any function it's deciding whether to call.
@@ -37,7 +37,7 @@ If you want to see the actual implementations side by side with this page's agen
 With those four tools declared, the agent loop is genuinely simple: ask the model, check whether it wants to call a tool, run the tool if so, feed the result back, and repeat — stopping either when the model has enough to answer directly, or when a hard cap is hit.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/agentic-rag/agentic_rag_docs.py:agent_loop"
+--8<-- "snippets/rag-cookbook/agentic-rag/agentic_rag_docs.py:agent_loop"
 ```
 
 The iteration cap matters for a reason that has nothing to do with cost: a genuinely open-ended loop, given a misleading tool result, has no built-in reason to ever stop trying. Capping it and returning an honest "reached the iteration limit without a final answer" is the same discipline as [Self-RAG](self-rag.md)'s regenerate-once-then-fall-back-honestly pattern, applied to a loop whose length isn't fixed in advance.

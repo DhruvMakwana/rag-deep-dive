@@ -55,11 +55,11 @@ This specific checkpoint's `adapter_config.json` sets `base_model_name_or_path` 
 Rendering is the entire "extraction" step this approach needs — no OCR, no text parsing:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vision-rag/vision_rag_docs.py:render_pages"
+--8<-- "snippets/rag-cookbook/vision-rag/vision_rag_docs.py:render_pages"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vision-rag/vision_rag_docs.py:vision_model"
+--8<-- "snippets/rag-cookbook/vision-rag/vision_rag_docs.py:vision_model"
 ```
 
 ## Indexing and searching page images
@@ -67,13 +67,13 @@ Rendering is the entire "extraction" step this approach needs — no OCR, no tex
 Every page is embedded as a full patch grid, and search scores every page against the query with MaxSim:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vision-rag/vision_rag_docs.py:vision_index_search"
+--8<-- "snippets/rag-cookbook/vision-rag/vision_rag_docs.py:vision_index_search"
 ```
 
 Compared directly against the naive text RAG baseline used across this site — extract text, chunk it, embed with a dedicated text embedder:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vision-rag/vision_rag_docs.py:naive_text_rag"
+--8<-- "snippets/rag-cookbook/vision-rag/vision_rag_docs.py:naive_text_rag"
 ```
 
 !!! warning "Measured: naive text RAG wins on plain factual Recall@3"

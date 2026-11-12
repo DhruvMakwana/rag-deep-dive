@@ -22,17 +22,17 @@ Every technique on this site so far relies on either embeddings and vector simil
 **Retrieval and generation, together.** Given a question, the chat model is handed the tree — section titles and summaries, not full text — reasons about which section(s) look relevant, pulls the actual text for just those sections, and answers, looping back for more if the first ones weren't enough. This is an agentic tool-calling loop under the hood, not a single classification call: the model can go deeper into a promising branch, back out of an unpromising one, and only reads full section text once it has a specific place to look.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/pageindex/pageindex_rag_docs.py:index_document"
+--8<-- "snippets/rag-cookbook/pageindex/pageindex_rag_docs.py:index_document"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/pageindex/pageindex_rag_docs.py:pageindex_search"
+--8<-- "snippets/rag-cookbook/pageindex/pageindex_rag_docs.py:pageindex_search"
 ```
 
 Compared directly against the naive text RAG baseline used elsewhere on this site — extract text, chunk it, embed with a dedicated text embedder, retrieve by cosine similarity:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/pageindex/pageindex_rag_docs.py:naive_text_search"
+--8<-- "snippets/rag-cookbook/pageindex/pageindex_rag_docs.py:naive_text_search"
 ```
 
 ## Measured: PageIndex 5/5, naive text RAG 3/5

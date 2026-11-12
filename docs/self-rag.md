@@ -27,7 +27,7 @@ Naive RAG does four things blindly: it retrieves a fixed top-k with no check on 
 Bi-encoder retrieval returns the top-k by similarity, but "similar enough to rank in the top-k" and "actually useful for answering this question" aren't the same thing — a chunk can rank highly because it shares vocabulary or topic with the query without actually containing the answer. This step checks each retrieved chunk individually, before generation ever sees it, and throws out the ones that don't hold up.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/self-rag/self_rag_docs.py:relevance"
+--8<-- "snippets/rag-cookbook/self-rag/self_rag_docs.py:relevance"
 ```
 
 **What actually happened, for the running example** — naive retrieval pulled 5 chunks; relevance grading kept 2 and discarded 3:
@@ -52,7 +52,7 @@ Worth noting honestly: chunk 2 (GPU hardware, not the optimizer) got graded rele
 The retrieved-and-filtered chunks (chunk 1 and chunk 2 from above) become the *only* context the model sees for this question — chunks 0, 3, and 4 are gone, so nothing about regularization, BLEU scores, or checkpoint averaging can leak into or distract this answer.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/self-rag/self_rag_docs.py:generate"
+--8<-- "snippets/rag-cookbook/self-rag/self_rag_docs.py:generate"
 ```
 
 For the running example, this produces: *"According to the context, they used the Adam optimizer with β1 = 0.9, β2 = 0.98 and ϵ = 10^-9."* Note the prompt explicitly tells the model to say so rather than guess when the context is thin — the same discipline used in [naive RAG's prompt](naive-rag.md). That instruction is what's doing the work in the fallback trace further down this page, where the model correctly declines instead of guessing.
@@ -62,7 +62,7 @@ For the running example, this produces: *"According to the context, they used th
 This is the check for the specific failure naive RAG can't catch: an answer that *sounds* right and uses the right vocabulary, but says something the retrieved text doesn't actually support — a number changed, a claim added, a detail from the model's own general knowledge slipped in instead of what was in front of it. Most write-ups implement this as another LLM call asking "is this supported?" — this recipe uses a local **NLI (Natural Language Inference) cross-encoder** instead, treating the retrieved context as a *premise* and the generated answer as a *hypothesis*, and asking whether the premise entails it.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/self-rag/self_rag_docs.py:groundedness"
+--8<-- "snippets/rag-cookbook/self-rag/self_rag_docs.py:groundedness"
 ```
 
 **For the running example:** context = chunks 1 and 2 above, answer = the Adam-optimizer sentence from step 2 → the model outputs `entailment`, so `grounded=True`. To see the check actually distinguishing something, here's a controlled test against the same context with a deliberately wrong claim swapped in:
@@ -84,7 +84,7 @@ Only `entailment` counts as grounded — both `contradiction` (the context activ
 An answer can pass the groundedness check and still fail the user: *"I cannot be completely certain about training details without more information"* is not contradicted by anything, but it also doesn't answer the question — grounded, yet useless. This step catches that gap.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/self-rag/self_rag_docs.py:usefulness"
+--8<-- "snippets/rag-cookbook/self-rag/self_rag_docs.py:usefulness"
 ```
 
 For the running example, the Adam-optimizer answer from step 2 grades `useful=True` — it directly answers what was asked. The hedge sentence above, tested directly against this same grader, comes back `False`. Groundedness and usefulness are deliberately separate checks because they can fail independently: grounded-but-useless (the hedge), or — in principle — useful-but-ungrounded (a confident, on-topic answer that's simply wrong).
@@ -94,7 +94,7 @@ For the running example, the Adam-optimizer answer from step 2 grades `useful=Tr
 All four stages above are wired together here: if an answer passes both groundedness and usefulness, it's returned immediately (that's what happens for the running example — one pass, no retry needed). If either check fails, the pipeline regenerates once and re-checks. If it's *still* not grounded and useful after that, it stops trying and returns an explicit "I don't have enough reliably-supported information" message instead of a second silent failure — the same "flag rather than guess again forever" pattern real production Self-RAG systems use.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/self-rag/self_rag_docs.py:pipeline"
+--8<-- "snippets/rag-cookbook/self-rag/self_rag_docs.py:pipeline"
 ```
 
 !!! success "A real, unforced end-to-end trace — the fallback working as intended"

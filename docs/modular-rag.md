@@ -36,7 +36,7 @@ All three routers solve the identical problem: classify a query into one of 5 ca
 The cheapest possible option: a handful of keyword and pattern rules, evaluated in plain Python with no model call at all. Fast by construction — there's no inference step to be slow.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/modular-rag/modular_rag_docs.py:heuristic"
+--8<-- "snippets/rag-cookbook/modular-rag/modular_rag_docs.py:heuristic"
 ```
 
 ### Embedding-based semantic routing — one local embedding call, no LLM
@@ -44,7 +44,7 @@ The cheapest possible option: a handful of keyword and pattern rules, evaluated 
 A middle ground: write a few example utterances per category once, embed them (offline, one-time cost), and average them into a centroid vector per category. At query time, embed the incoming query and route to whichever centroid it's closest to by cosine similarity — no LLM call anywhere in this path, just the same embedding model already used for retrieval.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/modular-rag/modular_rag_docs.py:embedding"
+--8<-- "snippets/rag-cookbook/modular-rag/modular_rag_docs.py:embedding"
 ```
 
 ### LLM-based routing — the router already built in adaptive-rag/
@@ -52,7 +52,7 @@ A middle ground: write a few example utterances per category once, embed them (o
 The most expensive, most flexible option, reused directly rather than rebuilt: the exact same prompt and parsing logic from [`adaptive-rag/`](tutorials/advanced-rag-from-scratch.md#3-the-router), included here specifically as the accuracy baseline the other two get measured against.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/modular-rag/modular_rag_docs.py:llm_router"
+--8<-- "snippets/rag-cookbook/modular-rag/modular_rag_docs.py:llm_router"
 ```
 
 ## Measuring all three honestly — and why two test sets, not one

@@ -58,11 +58,11 @@ pgvector supports IVFFlat directly (`lists` = `nlist`, `probes` = `nprobe`), wit
 ### FAISS IVF and pgvector IVFFlat, as code
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:faiss_ivf_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:faiss_ivf_demo"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:pgvector_ivfflat_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:pgvector_ivfflat_demo"
 ```
 
 !!! note "IVF needs real scale to show its actual behavior"
@@ -99,11 +99,11 @@ Every demo below indexes the same 121 chunks from the standard sample paper used
 A library, not a server or a full database — no persistence, metadata store, or network API of its own; `IndexHNSWFlat` and `IndexIVFFlat` are data structures you embed directly in a process. That makes it the fastest option to prototype with and the one with no operational surface at all, at the cost of having to build metadata filtering, persistence, and multi-tenancy yourself if you need them (the `IndexIDMap2` + external `{id: page}` dict pattern below is exactly that DIY layer). [Official docs & wiki →](https://github.com/facebookresearch/faiss/wiki)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:build_corpus"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:build_corpus"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:faiss_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:faiss_demo"
 ```
 
 Measured, unfiltered top-3 for *"What optimizer and learning rate schedule were used for training?"*: all three hits land on page 7 (`0.592`, `0.438`, `0.385`) — restricting the same search to pages 7–9 returns the identical three results, since they were already inside that range.
@@ -116,7 +116,7 @@ Measured, unfiltered top-3 for *"What optimizer and learning rate schedule were 
 A lightweight, developer-friendly database with HNSW as its only local index type (its distributed/cloud tier switches to SPANN internally, currently non-configurable). Metadata is native — a `where` filter travels in the same call as the vector query — and every HNSW setting lives in one structured `configuration={"hnsw": {...}}` dict at collection-creation time. `space`, `max_neighbors`, and `ef_construction` are fixed for the life of the collection; `ef_search`, `num_threads`, `batch_size`, `sync_threshold`, and `resize_factor` can all be changed later without a rebuild. [Official docs →](https://docs.trychroma.com/docs/collections/configure)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:chromadb_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:chromadb_demo"
 ```
 
 Measured, unfiltered top-3 for *"What BLEU score did the model achieve on English-to-German translation?"*: page 8 (`0.248`), page **1** (`0.278`), page 8 (`0.301`) — the abstract on page 1 mentions the same BLEU number in summary form, so it's a genuine near-match, not noise. Filtering to `where page in [8, 9]` replaces that page-1 result with the next real page-8 chunk (`0.342`), keeping the result set anchored to where the actual number is derived rather than just restated.
@@ -129,7 +129,7 @@ Measured, unfiltered top-3 for *"What BLEU score did the model achieve on Englis
 A full-featured, filter-first database — Qdrant's own architecture applies metadata filters *during* graph traversal rather than strictly before or after the ANN search, which is part of why it's frequently cited for the strongest filtering performance among open-source options. Below a configurable size (`full_scan_threshold`, default 10,000 KB) it skips the graph entirely and does an exact scan, since HNSW's overhead isn't worth it for a small enough collection. Embedded mode (`QdrantClient(":memory:")` or `path=...`) needs no server at all. [Official docs →](https://qdrant.tech/documentation/concepts/indexing/)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:qdrant_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:qdrant_demo"
 ```
 
 Measured, unfiltered top-3 for *"How many attention heads does the base model use?"*: page **15** (`0.632`), page 9 (`0.597`), page 7 (`0.568`) — page 15 is the appendix's attention-visualization figures, a real but tangential match. Filtering to `page <= 10` excludes it and surfaces page 5 instead (`0.568`, tied with page 7), which is the actual model-architecture section defining the head count.
@@ -142,7 +142,7 @@ Measured, unfiltered top-3 for *"How many attention heads does the base model us
 Milvus is the option built for genuinely large, multi-tenant production deployments, with by far the widest index-type catalog of the six: FLAT, IVF_FLAT, IVF_SQ8, IVF_PQ, HNSW and its quantized variants (HNSW_SQ/PQ/PRQ), DiskANN, GPU-accelerated IVF variants, binary-vector indexes, a sparse-vector index, and AUTOINDEX (which picks parameters for you). Milvus Lite is the same API running embedded and pure-Python, for local development that matches production code one-to-one. [Official docs →](https://milvus.io/docs/index.md)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:milvus_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:milvus_demo"
 ```
 
 Measured results match FAISS exactly (same cosine metric, same embeddings): unfiltered top-3 all on page 7 (`0.592`, `0.438`, `0.385`), unchanged after filtering to `page >= 7 and page <= 9`.
@@ -155,7 +155,7 @@ Measured results match FAISS exactly (same cosine metric, same embeddings): unfi
 Not a database of its own — a Postgres extension, so vectors and metadata live as ordinary table columns and filtering is just SQL `WHERE` combined with `ORDER BY ... <=> ... LIMIT`, no separate filter API to learn. Supports both HNSW and IVFFlat as index types, plus a feature none of the other five have: **iterative index scans** (`SET hnsw.iterative_scan = strict_order`), which keep expanding the search when a highly selective `WHERE` filter would otherwise starve a fixed-size ANN candidate list down to too few results. [Official docs (README) →](https://github.com/pgvector/pgvector/blob/master/README.md)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:pgvector_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:pgvector_demo"
 ```
 
 Measured results match ChromaDB exactly, same embeddings and metric: unfiltered top-3 of page 8 (`0.248`), page 1 (`0.278`), page 8 (`0.301`); `WHERE page BETWEEN 8 AND 9` produces the same page-8-only result set ChromaDB's `where` filter did.
@@ -165,7 +165,7 @@ Measured results match ChromaDB exactly, same embeddings and metric: unfiltered 
 The option with the deepest built-in tuning surface of the six: beyond `ef`/`ef_construction`/`max_connections`, Weaviate exposes `dynamic_ef_min`/`dynamic_ef_max`/`dynamic_ef_factor` (dynamic per-query `ef`, on by default), `flat_search_cutoff` (falls back to brute-force below 40,000 objects, the same small-collection philosophy as Qdrant's `full_scan_threshold`), `vector_cache_max_objects`, and a `filter_strategy` choice between `acorn` and `sweeping` for filtered search. It also ships a genuine standalone flat/brute-force index type (`Configure.VectorIndex.flat`), recommended specifically for small collections and multi-tenant setups where each tenant's own index is small enough that HNSW's graph overhead isn't worth paying. Vectors are supplied directly (`self_provided`, since embeddings already exist here) and the HNSW config nests inside `Configure.Vectors.self_provided(...)` as of client ≥ 4.16 — not a bare top-level kwarg, a common source of bugs against older tutorials. [Official docs →](https://docs.weaviate.io/weaviate/config-refs/indexing/vector-index)
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/vector-databases/vector_databases_docs.py:weaviate_demo"
+--8<-- "snippets/rag-cookbook/vector-databases/vector_databases_docs.py:weaviate_demo"
 ```
 
 Measured results match Qdrant's pattern exactly (same relative distances, cosine-consistent): unfiltered top-3 of page 15 (`0.368`), page 9 (`0.403`), page 7 (`0.432`); filtering to `page <= 10` again drops the page-15 appendix hit for page 5.

@@ -1525,7 +1525,7 @@ Every page's TL;DR in one place, every page's Scenario Check merged into one com
           "explanations": [
             "This page's ground truth isn't LLM-judged at all -- it's a much simpler, real substring/keyword match: a chunk counts as relevant if it contains the keyword known to answer that specific question. That LLM-judged approach is closer to how RAGAS's Context Precision works (covered on the RAGAS page), not what this page's Precision@k/Recall@k ground truth uses.",
             "Correct. This page's own build_relevance_set function does exactly this -- a chunk counts as relevant if it actually contains the keyword that answers the question, which is a real, checkable criterion rather than a hand-picked label.",
-            "Treating every chunk as relevant would make Precision@k collapse toward k/corpus-size for every query regardless of what was actually retrieved -- it removes exactly the signal (which chunks are truly relevant) the metric needs to be informative.",
+            "Treating every chunk as relevant would make Precision@k equal 1 for every query that returns k results, regardless of what was retrieved -- it removes exactly the signal (which chunks are truly relevant) the metric needs to be informative.",
             "Using the retrieval system's own top-1 result as ground truth would make the retrieval system trivially 'perfect' at evaluating itself -- the relevance set needs to be independent of the system being measured."
           ],
           "source": "Evaluation Metrics",

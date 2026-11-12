@@ -1,0 +1,12 @@
+# Core pipeline
+pypdf>=4.0
+sentence-transformers>=3.0
+faiss-cpu>=1.8
+numpy>=1.26
+python-dotenv>=1.0
+requests>=2.31
+
+# LLM providers — install whichever you plan to use (see .env.example).
+# Ollama needs no SDK: the script talks to its local REST API over `requests`.
+anthropic>=0.34
+openai>=1.40

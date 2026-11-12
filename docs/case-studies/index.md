@@ -1,11 +1,11 @@
 # System Design & Case Studies
 
-Choosing a vector database, an evaluation strategy, or an agent architecture is a system-design question, and the strongest way to prepare for that question is seeing how real companies actually answered it — what constraint drove the decision, what the alternative would have cost them, and what broke before they got it right. Every case study here is built from a real, verifiable primary source (an engineering blog, a peer-reviewed paper, an official incident report), not marketing copy — and where a claimed number couldn't be verified, it's flagged rather than presented as fact.
+Choosing a vector database, an evaluation strategy, or an agent architecture is a system-design question, and the strongest way to prepare for that question is seeing how real companies approached it — what constraint drove the decision, what the alternative would have cost them, and what broke before they got it right. These case studies draw on primary sources, including engineering blogs, peer-reviewed papers, and official incident reports. Some describe deployed systems; Uber's billion-scale vector-search example describes a prototype. Where a claimed number couldn't be verified, it's flagged rather than presented as fact.
 
 ## Retrieval infrastructure at scale
 
 - [Notion → turbopuffer](notion-turbopuffer.md) — a cost- and multi-tenancy-driven migration at real SaaS scale, 600× growth in onboarding
-- [Uber's billion-scale vector search](uber-vector-search.md) — what happens when an HNSW graph stops fitting in memory
+- [Uber's billion-scale vector-search prototype](uber-vector-search.md) — how memory and latency constraints shape an HNSW design at scale
 - [Airbnb: choosing IVF over HNSW](airbnb-ivf-hnsw.md) — a real counter-example to reflexively picking the "better" algorithm
 - [Spotify: Annoy → Voyager](spotify-voyager.md) — when deployment constraints, not benchmarks, decide the architecture
 

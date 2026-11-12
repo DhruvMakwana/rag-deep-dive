@@ -28,11 +28,11 @@ An open-source evaluation framework, not a single metric — a Python library co
 ## Running it: naive RAG pipeline + RAGAS scoring
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/ragas-deep-dive/ragas_deep_dive_docs.py:naive_rag"
+--8<-- "snippets/rag-cookbook/ragas-deep-dive/ragas_deep_dive_docs.py:naive_rag"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/ragas-deep-dive/ragas_deep_dive_docs.py:ragas_eval"
+--8<-- "snippets/rag-cookbook/ragas-deep-dive/ragas_deep_dive_docs.py:ragas_eval"
 ```
 
 !!! note "Setup requirements for this ragas release"
@@ -80,7 +80,7 @@ The four metrics map to different pipeline stages, so their pattern tells you wh
 - **NoiseSensitivity** — how much an answer's correctness degrades when the retrieved context contains irrelevant ("noisy") chunks alongside relevant ones.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/ragas-deep-dive/ragas_deep_dive_docs.py:extended_metrics"
+--8<-- "snippets/rag-cookbook/ragas-deep-dive/ragas_deep_dive_docs.py:extended_metrics"
 ```
 
 Measured aggregate scores, same 8-question eval set:
@@ -103,7 +103,7 @@ noise_sensitivity:    0.5089
 Every measurement on this page needed a hand-written eval set with real reference answers. `ragas.testset.TestsetGenerator` builds one automatically from source documents instead — useful when a reference eval set doesn't exist yet.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/ragas-deep-dive/ragas_deep_dive_docs.py:testset_generation"
+--8<-- "snippets/rag-cookbook/ragas-deep-dive/ragas_deep_dive_docs.py:testset_generation"
 ```
 
 Run against the full sample paper, real generated questions include both clean, formal phrasing and a genuine typo-laden variant — `TestsetGenerator` deliberately varies persona and query style, not just topic:

@@ -55,8 +55,10 @@
       '<span class="flashcard-progress">Card <span class="flashcard-progress-num">1</span>/' + originalCards.length + '</span>';
     container.appendChild(header);
 
-    const cardEl = document.createElement("div");
+    const cardEl = document.createElement("button");
+    cardEl.type = "button";
     cardEl.className = "flashcard";
+    cardEl.setAttribute("aria-pressed", "false");
     container.appendChild(cardEl);
 
     const nav = document.createElement("div");
@@ -89,15 +91,17 @@
 
       cardEl.innerHTML = "";
       cardEl.classList.remove("flashcard-flipped");
+      cardEl.setAttribute("aria-pressed", "false");
+      cardEl.setAttribute("aria-label", card.front + ". Show answer");
 
       if (card.source) {
-        const src = document.createElement("div");
+        const src = document.createElement("span");
         src.className = "flashcard-source";
         src.textContent = "From: " + card.source;
         cardEl.appendChild(src);
       }
 
-      const face = document.createElement("div");
+      const face = document.createElement("span");
       face.className = "flashcard-face";
       face.textContent = card.front;
       cardEl.appendChild(face);
@@ -111,6 +115,8 @@
       const card = originalCards[idx];
       flipped = !flipped;
       cardEl.classList.toggle("flashcard-flipped", flipped);
+      cardEl.setAttribute("aria-pressed", String(flipped));
+      cardEl.setAttribute("aria-label", (flipped ? card.back + ". Show question" : card.front + ". Show answer"));
       const face = cardEl.querySelector(".flashcard-face");
       if (face) face.textContent = flipped ? card.back : card.front;
     });

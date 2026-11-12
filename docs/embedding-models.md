@@ -23,7 +23,7 @@ Index with one embedding model, query with a different one, and nothing crashes 
 Measuring this directly: indexing with `all-MiniLM-L6-v2` and querying with a *different* same-dimension model (`multi-qa-MiniLM-L6-cos-v1`) dropped Recall@3 from 0.88 to 0.75 on an 8-question eval set. That's real degradation, not the "retrieval completely breaks" some write-ups claim — the two models still share some structural similarity from similar training objectives. The more dangerous version of this bug is a genuine **dimension mismatch** (say, switching from a 384-dim to a 768-dim model): that one crashes the similarity computation outright, which is actually the easier failure to catch. Same-dimension-but-wrong-space is the one that ships to production silently.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:mismatched"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:mismatched"
 ```
 
 ## Matryoshka Representation Learning (MRL)
@@ -35,7 +35,7 @@ Most embedding models bake in one fixed output size — 384, 768, 1024 dimension
 **Measured trade-off** (`nomic-embed-text-v1.5`, Matryoshka-trained down to 128 dims):
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:matryoshka"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:matryoshka"
 ```
 
 **Who supports this today:** OpenAI's `text-embedding-3-small`/`-large`, Google's Gemini Embedding, Alibaba's Qwen3-Embedding family (configurable 32 to 1024+ dims), and open models like `nomic-embed-text-v1.5`. Check the specific model's documentation for which exact sizes it was trained/validated at — truncating to an arbitrary size the model wasn't designed for works less predictably than the officially supported cut points (for `nomic-embed-text-v1.5`: 768, 512, 256, 128).
@@ -47,7 +47,7 @@ A separate, *stackable* lever from Matryoshka — instead of storing fewer dimen
 **Measured trade-off** (same model and dimension, precision only):
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:quantization"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:quantization"
 ```
 
 `float32 → int8` cost almost nothing here (0.88 → 0.75 Recall@3 for a 4x storage win); `binary` cost considerably more (down to 0.38) — the sharpest cut in the whole precision spectrum, since 1-bit-per-dimension throws away far more signal than 8-bit does. In production, binary quantization is typically paired with a **rescoring step**: retrieve a larger candidate set cheaply with binary vectors, then re-rank the shortlist with the original float32 vectors — getting most of the storage win without eating the full accuracy cost on the final ranking.
@@ -62,7 +62,7 @@ Many current embedding models expect a short task-specific string prepended to t
 **Measured** (`nomic-embed-text-v1.5`, correct dual-prefix convention vs. none):
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:instruction"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:instruction"
 ```
 
 !!! warning "An honest negative result"
@@ -98,7 +98,7 @@ A late-interaction model embeds **every token of both**, contextually — so eac
 **BGE-M3 packages this as one of three outputs from a single model call:**
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:bge_m3"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:bge_m3"
 ```
 
 One `encode()` call, three genuinely different retrieval representations: a dense vector (semantic similarity, same as everything above), sparse lexical weights (covered next), and per-token ColBERT-style vectors — letting one model serve all three retrieval "lanes" a production hybrid system might otherwise need three separate models for.
@@ -125,7 +125,7 @@ Doc F: "Car maintenance schedule and tips"        ← shares "car", tangentially
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:bm25_vs_dense"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:bm25_vs_dense"
 ```
 
 **BM25** (`rank_bm25`'s `BM25Okapi`, no model, pure statistics):
@@ -153,7 +153,7 @@ Exactly the opposite pattern from BM25. Doc A now ranks clearly first, because t
 **SPLADE**, using a real `naver/splade-cocondenser-ensembledistil` model via `sentence-transformers`' `SparseEncoder`:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:splade"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:splade"
 ```
 
 | Document | SPLADE score |
@@ -176,7 +176,7 @@ Doc A wins clearly, same as dense — but the *mechanism* is directly inspectabl
 BM25 and dense embeddings have close-to-opposite blind spots — BM25 misses paraphrases entirely, dense sometimes under-weights exact rare terms. **Hybrid search** runs both independently, then fuses the two ranked lists with **Reciprocal Rank Fusion (RRF)**: convert each list's raw scores to ranks, then sum `1/(k + rank + 1)` for each document across both lists — a document ranked highly by either signal gets a real boost, without needing BM25's statistics and cosine similarity to be on comparable numeric scales at all.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/embedding-model-selection/embedding_models_docs.py:hybrid_rrf"
+--8<-- "snippets/rag-cookbook/embedding-model-selection/embedding_models_docs.py:hybrid_rrf"
 ```
 
 Fusing the exact BM25 and dense scores measured above:

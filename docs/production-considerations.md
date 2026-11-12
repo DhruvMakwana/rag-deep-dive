@@ -18,7 +18,7 @@ It's tempting to treat these as one "handle failures" bucket, but they solve dif
 **Retries** exist for transient failures — a brief rate limit, a cold start, a dropped connection — where trying again with backoff is likely to succeed. `tenacity` is the standard current Python library for this:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/production-considerations/production_considerations_docs.py:retry_backoff"
+--8<-- "snippets/rag-cookbook/production-considerations/production_considerations_docs.py:retry_backoff"
 ```
 
 Measured against a call that fails twice, then succeeds:
@@ -34,7 +34,7 @@ Retrying blindly has a real cost: too many retries on a call that's failing for 
 **Circuit breakers** exist for the opposite case — a dependency that's failing *persistently*, where retrying is pure waste. Once a failure threshold is crossed, the breaker opens and short-circuits further calls immediately, with no request sent at all, until a cooldown period passes and it allows a single probe request through to check recovery:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/production-considerations/production_considerations_docs.py:circuit_breaker"
+--8<-- "snippets/rag-cookbook/production-considerations/production_considerations_docs.py:circuit_breaker"
 ```
 
 Measured against a persistently down service, 6 calls:
@@ -70,7 +70,7 @@ The anti-pattern worth naming explicitly: caching one generic "sorry, something 
 **Semantic caching** solves a different problem: skipping the *entire* pipeline — embedding, retrieval, and generation — for a query that's a near-duplicate of one already answered, not just reusing a prefix within a call that still generates fresh output. Real current tools (GPTCache, Redis's semantic caching) work the same way mechanically: embed the incoming query, check cosine similarity against previously-cached query embeddings, and serve the cached response directly on a hit above some similarity threshold.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/production-considerations/production_considerations_docs.py:semantic_cache"
+--8<-- "snippets/rag-cookbook/production-considerations/production_considerations_docs.py:semantic_cache"
 ```
 
 Measured against six real questions, three of them genuine paraphrases of earlier ones, at a 0.85 similarity threshold:
@@ -108,11 +108,11 @@ A RAG system that hallucinates, retrieves the wrong chunks, or silently degrades
 ## This page's own pipeline, measured
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/production-considerations/production_considerations_docs.py:latency_breakdown"
+--8<-- "snippets/rag-cookbook/production-considerations/production_considerations_docs.py:latency_breakdown"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/production-considerations/production_considerations_docs.py:cost_tracking"
+--8<-- "snippets/rag-cookbook/production-considerations/production_considerations_docs.py:cost_tracking"
 ```
 
 Real per-stage latency for a single query against this page's naive RAG pipeline:

@@ -19,7 +19,7 @@ Vector similarity search treats every chunk as isolated text — good at "find t
 Each chunk gets read by an LLM and turned into `(entity, relationship, entity)` triples — the raw material the graph is built from.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/graph-rag/graph_rag_docs.py:extraction"
+--8<-- "snippets/rag-cookbook/graph-rag/graph_rag_docs.py:extraction"
 ```
 
 **Real output, from an actual chunk in the sample paper:**
@@ -42,7 +42,7 @@ Run across all 92 chunks of the real sample paper, this produced **605 entities 
 Different chunks describe the same real entity with different surface forms — "Encoder," "the Encoder stack," "encoder" all refer to the same thing. Left unmerged, these fragment the graph into disconnected near-duplicate nodes that should be one.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/graph-rag/graph_rag_docs.py:dedup"
+--8<-- "snippets/rag-cookbook/graph-rag/graph_rag_docs.py:dedup"
 ```
 
 !!! warning "A real, honest limitation, not a hypothetical one"
@@ -53,7 +53,7 @@ Different chunks describe the same real entity with different surface forms — 
 Once the graph exists, clustering related entities together is purely structural — no LLM involved at this step.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/graph-rag/graph_rag_docs.py:communities"
+--8<-- "snippets/rag-cookbook/graph-rag/graph_rag_docs.py:communities"
 ```
 
 Louvain community detection on the real 605-entity graph found **70 communities** — a large one centered on the Transformer model itself and its evaluation, down to many small, tightly-related clusters. Each community then gets one LLM call to produce a short summary of what it collectively represents — 70 more calls, on top of the 92 extraction calls above.
@@ -69,7 +69,7 @@ Local search is for questions that are really about one or two specific things a
 Concretely, that means two steps: **entity-linking** the query to graph nodes by embedding similarity (the query says "label smoothing," the graph node might be canonicalized as `"Label Smoothing"` — close enough in embedding space to match, without needing an exact string match), and then **traversal** — walking outward from those matched nodes along graph edges, collecting every relationship (and the original source chunk it came from) encountered along the way.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/graph-rag/graph_rag_docs.py:local_search"
+--8<-- "snippets/rag-cookbook/graph-rag/graph_rag_docs.py:local_search"
 ```
 
 !!! success "Measured: a real win naive retrieval didn't have"
@@ -82,7 +82,7 @@ Local search assumes the answer lives near a handful of specific entities. That 
 That's a **map-reduce** pattern: the "map" step asks each community summary in isolation (parallelizable — and a community with nothing relevant just says so and gets filtered out), and the "reduce" step takes whatever partial answers survived and combines them into one final answer.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/graph-rag/graph_rag_docs.py:global_search"
+--8<-- "snippets/rag-cookbook/graph-rag/graph_rag_docs.py:global_search"
 ```
 
 !!! success "Measured: naive top-5 missed most of the architecture"

@@ -23,21 +23,21 @@ Every technique so far retrieves *something* per query — search a knowledge ba
 **Cached** — the same system prompt, but annotated with a cache breakpoint. The first call against a given document pays a real premium to write the cache. Every later call within the cache's TTL, against the byte-identical prefix, reads from the cache instead of reprocessing the document — this reuse across repeated queries is the entire mechanism CAG's name refers to. Conflating "long context" with "caching" is the most common mix-up in casual coverage of this topic: the size of what you put in context and whether that context gets reused are two separate levers.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/cag/cag_docs.py:load_document"
+--8<-- "snippets/rag-cookbook/cag/cag_docs.py:load_document"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/cag/cag_docs.py:generate_fresh"
+--8<-- "snippets/rag-cookbook/cag/cag_docs.py:generate_fresh"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/cag/cag_docs.py:generate_cached"
+--8<-- "snippets/rag-cookbook/cag/cag_docs.py:generate_cached"
 ```
 
 Cost isn't a single flat "cached" rate — cache writes and cache reads are both multipliers on Sonnet 5's base input price ($2.00/MTok), computed directly from the API's own usage fields on each response:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/cag/cag_docs.py:cost_from_usage"
+--8<-- "snippets/rag-cookbook/cag/cag_docs.py:cost_from_usage"
 ```
 
 ## Measured: cost drops sharply, latency doesn't — reliably

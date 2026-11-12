@@ -1,6 +1,6 @@
 # Build Naive RAG From Scratch
 
-A minimal, dependency-light naive RAG pipeline — PDF → chunk → embed → index → retrieve → generate — with no LangChain/LlamaIndex in the way, so every step stays visible. The code lives in [`rag-cookbook/naive-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/main/naive-rag); every block below is pulled live from those exact files at build time, so what you read here is always exactly what runs.
+A minimal, dependency-light naive RAG pipeline — PDF → chunk → embed → index → retrieve → generate — with no LangChain/LlamaIndex in the way, so every step stays visible. The code lives in [`rag-cookbook/naive-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/acce4804f210bf5f25918165222774d1c3cb43dc/naive-rag); the examples below come from a local snapshot of that commit.
 
 If you haven't yet, read [Naive RAG](../naive-rag.md) first for the concepts — this page is the "now build it" companion, and deliberately skips re-explaining *why* each step exists.
 
@@ -35,7 +35,7 @@ pip install -r requirements.txt
 ```
 
 ```
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/requirements.txt"
+--8<-- "snippets/rag-cookbook/naive-rag/requirements.txt"
 ```
 
 `sentence-transformers` pulls in PyTorch — expect a few hundred MB to download and a couple of minutes, one time only.
@@ -47,7 +47,7 @@ cp .env.example .env
 ```
 
 ```
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/.env.example"
+--8<-- "snippets/rag-cookbook/naive-rag/.env.example"
 ```
 
 `.env` is git-ignored — it never gets committed, and the code never prints or logs its contents. Three interchangeable providers are supported, picked via `LLM_PROVIDER`:
@@ -58,7 +58,7 @@ cp .env.example .env
 ## 3. Fetch the sample data
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/download_data.py"
+--8<-- "snippets/rag-cookbook/naive-rag/download_data.py"
 ```
 
 Nothing exotic — download once, cache under `data/` (git-ignored, so the PDF itself never ends up in the repo either). Point `PDF_PATH` at your own file instead any time; see [Using your own PDF](#using-your-own-pdf).
@@ -66,7 +66,7 @@ Nothing exotic — download once, cache under `data/` (git-ignored, so the PDF i
 ## 4. Extract text from the PDF
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:load_pdf"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:load_pdf"
 ```
 
 [`pypdf`](https://pypdf.readthedocs.io/) walks every page and pulls out its text layer. This only works for PDFs with an actual text layer — a scanned document with no OCR would return empty strings here. (That failure mode is exactly what motivates [Vision-RAG](../vision-rag.md) later on.)
@@ -74,7 +74,7 @@ Nothing exotic — download once, cache under `data/` (git-ignored, so the PDF i
 ## 5. Chunk it
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:chunk_text"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:chunk_text"
 ```
 
 Fixed-size, character-based, with overlap — the simplest strategy that exists, on purpose. This is the one step you'll almost certainly want to upgrade first; see [Chunking Strategies](../chunking.md) for what to reach for and when.
@@ -82,7 +82,7 @@ Fixed-size, character-based, with overlap — the simplest strategy that exists,
 ## 6. Embed the chunks
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:embed"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:embed"
 ```
 
 `all-MiniLM-L6-v2` via [sentence-transformers](https://www.sbert.net/) — small (~80MB), fast on CPU, runs fully locally so indexing never needs an API key. Embeddings are L2-normalized so a plain inner-product search below is equivalent to cosine similarity, without computing norms at query time.
@@ -90,7 +90,7 @@ Fixed-size, character-based, with overlap — the simplest strategy that exists,
 ## 7. Build the vector index
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:build_index"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:build_index"
 ```
 
 A flat FAISS index does brute-force exact search — perfectly fine at hundreds of chunks. It stops being fine in the millions; see [Vector Databases](../vector-databases.md) for ANN indexes (HNSW, IVF) and when to reach for a real vector DB instead of an in-process index.
@@ -98,7 +98,7 @@ A flat FAISS index does brute-force exact search — perfectly fine at hundreds 
 ## 8. Retrieve
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:retrieve"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:retrieve"
 ```
 
 The query gets embedded with the *same* model used for the chunks (non-negotiable — see the embedding model page's one hard rule), then FAISS returns the `k` nearest chunks by cosine similarity.
@@ -106,7 +106,7 @@ The query gets embedded with the *same* model used for the chunks (non-negotiabl
 ## 9. Build the prompt
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/rag_naive.py:prompt"
+--8<-- "snippets/rag-cookbook/naive-rag/rag_naive.py:prompt"
 ```
 
 Deliberately blunt: answer only from context, say "I don't know" rather than guess. No citation formatting, no chain-of-thought scaffolding — see [Response Quality & Safety](../response-quality-safety.md) for hardening this properly.
@@ -114,22 +114,22 @@ Deliberately blunt: answer only from context, say "I don't know" rather than gue
 ## 10. Generate — pluggable across providers
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/llm.py:provider_dispatch"
+--8<-- "snippets/rag-cookbook/naive-rag/llm.py:provider_dispatch"
 ```
 
 Each provider is one small function behind a common interface:
 
 === "Anthropic"
     ```python
-    --8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/llm.py:provider_anthropic"
+    --8<-- "snippets/rag-cookbook/naive-rag/llm.py:provider_anthropic"
     ```
 === "OpenAI"
     ```python
-    --8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/llm.py:provider_openai"
+    --8<-- "snippets/rag-cookbook/naive-rag/llm.py:provider_openai"
     ```
 === "Ollama (local, free)"
     ```python
-    --8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/naive-rag/llm.py:provider_ollama"
+    --8<-- "snippets/rag-cookbook/naive-rag/llm.py:provider_ollama"
     ```
 
 ## Run it

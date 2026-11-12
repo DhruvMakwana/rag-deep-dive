@@ -2,7 +2,7 @@
 
 Every other recipe on this site tests one technique against one small, single-document corpus, on purpose — isolating a variable is the right way to measure what a specific technique actually does. This tutorial does the opposite: it combines chunking-strategy choice, retrieval-method choice, a real vector database, and RAGAS evaluation into one pipeline, run against three real papers at once (not one), so the comparisons and failure modes below are the ones that only show up once several pieces are stacked together.
 
-The code lives in [`rag-cookbook/multi-doc-production-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/main/multi-doc-production-rag); every block below is pulled live from those exact files at build time.
+The code lives in [`rag-cookbook/multi-doc-production-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/acce4804f210bf5f25918165222774d1c3cb43dc/multi-doc-production-rag); the examples below come from a local snapshot of that commit.
 
 !!! note "Read these first"
     This tutorial assumes you've read [Chunking Strategies](../chunking.md), [Retrieval Methods](../retrieval-methods.md), [Vector Databases](../vector-databases.md), and [RAGAS Deep Dive](../ragas.md) — it reuses their techniques directly and doesn't re-explain how each one works internally.
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 ```
 
 ```
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multi-doc-production-rag/requirements.txt"
+--8<-- "snippets/rag-cookbook/multi-doc-production-rag/requirements.txt"
 ```
 
 ## 2. Configure
@@ -37,11 +37,11 @@ The chunking and retrieval comparisons need no API key at all. The final RAGAS e
 ## 3. Chunking strategies, compared on the same multi-document corpus
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multi-doc-production-rag/multi_doc_rag_docs.py:chunkers"
+--8<-- "snippets/rag-cookbook/multi-doc-production-rag/multi_doc_rag_docs.py:chunkers"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multi-doc-production-rag/multi_doc_rag_docs.py:chunking_eval"
+--8<-- "snippets/rag-cookbook/multi-doc-production-rag/multi_doc_rag_docs.py:chunking_eval"
 ```
 
 Measured Recall@3 / Hit Rate@3 across the 9-question eval set:
@@ -57,7 +57,7 @@ Sentence-window chunking — grouping complete sentences instead of splitting at
 ## 4. Dense-only vs. hybrid retrieval, on the winning chunking strategy
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multi-doc-production-rag/multi_doc_rag_docs.py:hybrid_rrf"
+--8<-- "snippets/rag-cookbook/multi-doc-production-rag/multi_doc_rag_docs.py:hybrid_rrf"
 ```
 
 Measured against the same 9 questions, sentence-window chunks:
@@ -73,7 +73,7 @@ hybrid+RRF  recall@3=0.159  hit_rate@3=0.444
 ## 5. Indexing into a real vector database, with metadata filtering across documents
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/multi-doc-production-rag/multi_doc_rag_docs.py:qdrant_multi_doc"
+--8<-- "snippets/rag-cookbook/multi-doc-production-rag/multi_doc_rag_docs.py:qdrant_multi_doc"
 ```
 
 Measured against the genuinely ambiguous question "How many layers does the model have?":

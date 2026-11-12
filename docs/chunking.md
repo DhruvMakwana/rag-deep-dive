@@ -28,7 +28,7 @@ It respects nothing about the document's actual structure — it will happily cu
 **Use it for:** simple, uniform documents where structure barely matters, fast prototyping, or as a baseline before investing in anything smarter.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:fixed_size"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:fixed_size"
 ```
 
 ## Recursive Chunking
@@ -42,7 +42,7 @@ This is the **default almost everyone should start with**. It's still zero-cost 
 **Use it for:** the general-purpose default for markdown, HTML, and plain text — reach for something smarter only once you have eval evidence recursive isn't enough.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:recursive"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:recursive"
 ```
 
 ## Document/Structure-Aware Chunking
@@ -56,7 +56,7 @@ The upside is exact: chunk boundaries land exactly where the document's author a
 **Use it for:** structured documents with clear sections — Markdown files, well-tagged HTML, PDFs with genuine heading structure.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:structure_aware"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:structure_aware"
 ```
 
 ## Semantic Chunking
@@ -70,7 +70,7 @@ This produces the most topically coherent chunks of any non-LLM method — and i
 **Use it for:** narratives and technical documentation where topical coherence is genuinely the retrieval bottleneck — worth the extra indexing cost specifically when eval results show it, not by default.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:semantic"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:semantic"
 ```
 
 ## Sentence-Window Retrieval
@@ -84,7 +84,7 @@ A single matched sentence is often too little for the LLM to work with — a pro
 **Use it for:** precise fact-lookup where the exact matching unit matters (a specific clause, a specific number) but the model still needs a sentence or two of surrounding context to interpret it correctly.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:sentence_window"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:sentence_window"
 ```
 
 ## Small-to-Big / Parent-Document Retrieval
@@ -98,7 +98,7 @@ This is the general form of sentence-window (child = one sentence, parent = a fi
 **Use it for:** the default pattern to reach for whenever precise retrieval and sufficient generation context are in tension — which describes most production RAG systems once they've outgrown fixed-size or recursive alone.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:small_to_big"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:small_to_big"
 ```
 
 ## Late Chunking
@@ -112,7 +112,7 @@ Every strategy above embeds each chunk **in isolation** — the embedding model 
 **Use it for:** documents where chunks losing their surrounding reference (pronouns, "that quarter," "the aforementioned clause") is actually hurting retrieval — financial reports, legal documents, anything with heavy cross-referencing.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:late_chunking"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:late_chunking"
 ```
 
 ## Proposition-Based Chunking
@@ -126,7 +126,7 @@ Go finer than a sentence: decompose a passage into **propositions** — atomic, 
 **Use it for:** dense factual documents where a single query needs to land on one precise fact, not a paragraph containing it — knowledge bases, structured reference material, anywhere Recall@k on *exact facts* is the metric that matters.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:proposition"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:proposition"
 ```
 
 ## Agentic Chunking
@@ -140,7 +140,7 @@ Skip the rule entirely — prompt an LLM to read the document and decide chunk b
 **Use it for:** high-value, complex documents where getting boundaries exactly right justifies real cost — contracts, medical records, regulatory filings. Not for bulk indexing of a large, lower-stakes corpus.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:agentic"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:agentic"
 ```
 
 ## Adaptive Chunking
@@ -154,7 +154,7 @@ This one isn't a chunking method — it's a *strategy selector*. In a genuinely 
 **Use it for:** genuinely mixed-format corpora — which describes most real-world document repositories once you look closely.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/chunking-strategies/chunking_strategies_docs.py:adaptive"
+--8<-- "snippets/rag-cookbook/chunking-strategies/chunking_strategies_docs.py:adaptive"
 ```
 
 ## Comparison table

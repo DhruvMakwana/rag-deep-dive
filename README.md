@@ -10,12 +10,7 @@ mkdocs serve
 ```
 Open http://127.0.0.1:8000 — hot-reloads on save.
 
-Tutorial pages embed real code live from the [`rag-cookbook`](https://github.com/DhruvMakwana/rag-cookbook) repo at build time (via `pymdownx.snippets`' `url_download`), so building requires network access. If you're on macOS with the python.org installer and see `CERTIFICATE_VERIFY_FAILED`, run:
-```bash
-python3 -m pip install --user certifi
-export SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())")
-```
-(GitHub Actions' Ubuntu runners already ship a valid CA bundle — this only affects local macOS builds.)
+Code examples are embedded from the versioned `snippets/rag-cookbook/` snapshot, so the build does not need network access. The snapshot contains the exact 28 cookbook files referenced by the pages and comes from [`rag-cookbook` commit `acce4804`](https://github.com/DhruvMakwana/rag-cookbook/commit/acce4804f210bf5f25918165222774d1c3cb43dc). When updating the companion cookbook, refresh those files and the commit reference together, then run `mkdocs build --strict`.
 
 ## Adding, editing, deleting content
 

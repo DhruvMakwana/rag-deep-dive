@@ -19,7 +19,7 @@ Retrieval doesn't end when you have your top-k chunks. Naive retrieval's ranking
 A cross-encoder fixes this by feeding query and chunk into the model **together** — `[CLS] query [SEP] chunk [SEP]` — so bidirectional attention lets every query token attend to every chunk token and vice versa in one forward pass. It outputs a single relevance score per pair. This is far more accurate, but nothing can be pre-computed: every query-chunk pair needs a fresh forward pass, which is too slow to run over an entire corpus. The standard production pattern is therefore two-stage: bi-encoder retrieval casts a wide net (e.g. top-50 to top-150, optimizing for recall), then a cross-encoder rescoring only that shortlist (optimizing for precision). This is exactly Anthropic's Contextual Retrieval recommendation: hybrid retrieval → top-150 → cross-encoder rerank → top-20 → LLM.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/post-retrieval/post_retrieval_docs.py:cross_encoder"
+--8<-- "snippets/rag-cookbook/post-retrieval/post_retrieval_docs.py:cross_encoder"
 ```
 
 **Input → output, from an actual run:**
@@ -78,7 +78,7 @@ ranks — notice the big drop after rank 2):
 Contextual compression runs each retrieved chunk through a cheap LLM call that extracts (or rewrites) only the sentences relevant to the question, discarding the rest — after retrieval (and optionally after reranking), before the final generation call.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/post-retrieval/post_retrieval_docs.py:compression"
+--8<-- "snippets/rag-cookbook/post-retrieval/post_retrieval_docs.py:compression"
 ```
 
 **Input → output, from an actual run:**
@@ -121,7 +121,7 @@ entirely; chunks 1 and 2 kept only their relevant sentence:
 **The problem it fixes — or rather, a different way of fixing the same problem:** a cross-encoder scores each candidate chunk *independently* against the query (pointwise). An LLM can instead see the **entire candidate list at once** and reason about candidates relative to each other in a single call — this is the RankGPT approach: number the candidates, ask the LLM to return them reordered by relevance. It's a genuinely more modern technique than classic BERT-style cross-encoders, and worth knowing as an alternative, not a strict upgrade.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/post-retrieval/post_retrieval_docs.py:listwise"
+--8<-- "snippets/rag-cookbook/post-retrieval/post_retrieval_docs.py:listwise"
 ```
 
 **Input → output, from an actual run — same scenario as cross-encoder reranking, for direct comparison:**

@@ -1,0 +1,19 @@
+sentence-transformers>=6.0
+pypdf>=6.0
+requests>=2.31
+numpy>=2.0
+langchain-text-splitters>=0.2
+rank_bm25>=0.2
+python-dotenv>=1.0
+
+# Vector database
+qdrant-client>=1.19
+
+# RAGAS evaluation (needs langchain-community pinned -- see README)
+langchain-community==0.3.31
+ragas>=0.4.3
+langchain-anthropic>=0.3
+langchain-huggingface>=0.1
+anthropic>=0.34
+openai>=1.0
+pandas>=2.0

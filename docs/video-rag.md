@@ -50,25 +50,25 @@ That's the entire mechanism — `min(frames, key=lambda pair: abs(pair[0] - time
 **Frame extraction** samples one frame every 5 seconds via `ffmpeg` — fixed-interval, not scene-detection, which is simple and adequate for a short video:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/video-rag/video_rag_docs.py:extract_frames"
+--8<-- "snippets/rag-cookbook/video-rag/video_rag_docs.py:extract_frames"
 ```
 
 **Transcription** produces timestamped segments. Whisper shells out to the system `ffmpeg` binary internally to decode audio, so it's a real prerequisite even though this function never calls it directly:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/video-rag/video_rag_docs.py:transcribe_video"
+--8<-- "snippets/rag-cookbook/video-rag/video_rag_docs.py:transcribe_video"
 ```
 
 **Retrieval** over transcript segments uses the same embed-and-cosine-similarity pattern as plain text RAG elsewhere on this site — the only difference is each retrievable unit carries a timestamp instead of a page or chunk id:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/video-rag/video_rag_docs.py:transcript_search"
+--8<-- "snippets/rag-cookbook/video-rag/video_rag_docs.py:transcript_search"
 ```
 
 **Frame grounding** is driven entirely by proximity to the retrieved segment's timestamp — frames only exist at the fixed 5-second samples, so this is always "the closest sampled frame," not a guarantee of the exact right visual instant:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/video-rag/video_rag_docs.py:nearest_frame"
+--8<-- "snippets/rag-cookbook/video-rag/video_rag_docs.py:nearest_frame"
 ```
 
 ## Measured: transcript-only Recall@3 — 3 of 5

@@ -35,7 +35,7 @@ Plain top-k retrieval has no concept of redundancy: if five near-duplicate chunk
 **Measured, using the real `langchain_core.vectorstores.utils.maximal_marginal_relevance` utility** — not a hand-rolled reimplementation, since this is exactly the kind of well-established algorithm worth using a tested implementation for:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:mmr"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:mmr"
 ```
 
 At `lambda_mult=1.0` on the sample document, every one of the top-4 results is about multi-head attention specifically — relevant, but repetitive. At `lambda_mult=0.3`, the result set pulls in a training-cost footnote and an author-contributions passage alongside the attention content — genuinely different information, at some cost to pure topical focus.
@@ -47,7 +47,7 @@ At `lambda_mult=1.0` on the sample document, every one of the top-4 results is a
 Most retrieval treats a query as pure semantic content. **Self-query retrieval** recognizes that a lot of real queries actually contain two different kinds of information mixed together — "what's the 2024 remote work policy" is a semantic search for "remote work policy" *plus* a hard filter, `year = 2024`. An LLM splits the query into these two parts; the filter gets applied first (a hard constraint, not a similarity signal), and only the surviving candidates get ranked by semantic similarity.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:self_query"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:self_query"
 ```
 
 !!! warning "A real failure this exact prompt produced, and the fix"
@@ -62,7 +62,7 @@ Most retrieval treats a query as pure semantic content. **Self-query retrieval**
 [HyDE](advanced-rag-pre-retrieval.md) fixes the question-vs-answer phrasing gap at *query time*, by generating a hypothetical answer and embedding that instead of the raw question. **Hypothetical Questions** fixes the exact same gap from the opposite direction, at *index* time: for each chunk, an LLM generates several plausible questions that chunk could answer, and those generated questions — not the chunk's own declarative text — get embedded and indexed. At query time, the user's real question is compared against other questions, not against answer-shaped text — same "shape" of text on both sides of the comparison.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:hypothetical_questions"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:hypothetical_questions"
 ```
 
 **Trade-off vs. HyDE:** Hypothetical Questions pays its LLM cost once, upfront, at indexing time — query time is a normal, fast embedding lookup with no extra LLM call. HyDE pays an LLM call on *every single query*, with zero indexing overhead. Pick Hypothetical Questions when query volume is high relative to how often the corpus changes; pick HyDE when the corpus changes too often to justify re-generating questions for every chunk repeatedly.
@@ -74,7 +74,7 @@ Most retrieval treats a query as pure semantic content. **Self-query retrieval**
 Searching every chunk in a large corpus flat gets slower and noisier as the corpus grows — more opportunities for an irrelevant chunk from an unrelated document to score deceptively high purely by coincidence. **Hierarchical index retrieval** builds multiple independently-searchable levels — document-level, section-level, chunk-level — and searches them in stages: find the right document first, then the right section within it, then the right chunk within that section. The same instinct that makes a person go to the right book, then the right chapter, then the right paragraph, rather than scanning every page of every book in a library.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:hierarchical"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:hierarchical"
 ```
 
 **How this differs from [small-to-big/parent-document](chunking.md#small-to-big-parent-document-retrieval)** (easy to conflate — both involve parent-child structure): small-to-big is a 2-tier system built for one purpose — retrieve precisely on a small child chunk, then fetch a larger parent purely for generation context; only the child tier is ever searched. Hierarchical index retrieval is typically 3+ tiers, and **every tier is embedded and independently searchable** — the point is narrowing the search space itself at each stage, not just fetching more context after a match is already found.
@@ -86,7 +86,7 @@ Searching every chunk in a large corpus flat gets slower and noisier as the corp
 Flat retrieval — even hybrid, even reranked — struggles with questions that need synthesis across many parts of a document, not a single fact lookup: "what is this paper about overall" has no single chunk that answers it. **RAPTOR** builds a tree to fix this: cluster chunks by embedding similarity, summarize each cluster with an LLM into a higher-level node, then recurse — cluster the summaries themselves into a higher layer, summarize again — up toward a small number of broad summary nodes. At query time, search leaf chunks *and* summary nodes together: a narrow factual question tends to match best at leaf level; a broad synthesis question tends to match a summary node instead.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:raptor"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:raptor"
 ```
 
 Run against the sample paper, real clustering (`scikit-learn`'s `KMeans`) plus real LLM summarization produced genuinely coherent cluster summaries — one describing the shift away from recurrent networks toward pure attention, another describing the paper's authorship and permissions, another describing the BLEU-score results and training efficiency. Asked the broad question *"What is this paper about overall?"*, retrieval correctly surfaced a summary node rather than a single narrow leaf chunk that could only ever answer one piece of that question.
@@ -102,7 +102,7 @@ Instead of always retrieving a fixed top-k for every query regardless of whether
 Real token-level log-probabilities aren't exposed the same way across every hosted chat API, so the runnable version here uses a simpler, fully implementable stand-in: generate a draft answer, then ask the model to **self-report** its own confidence in that answer (1-5), and only retrieve if the self-reported score is low. Cruder than real FLARE's live token-probability signal, but the same "retrieve only when needed" shape, and it works against any chat-completions API.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/retrieval-methods/retrieval_methods_docs.py:adaptive"
+--8<-- "snippets/rag-cookbook/retrieval-methods/retrieval_methods_docs.py:adaptive"
 ```
 
 !!! warning "A real failure, and what fixing it did and didn't solve"

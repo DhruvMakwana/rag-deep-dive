@@ -20,7 +20,7 @@ To make the mechanism concrete, three genuinely different questions — one for 
 Naive retrieval pulls the usual top-k by similarity. CRAG's first real addition is what happens next: instead of trusting that top-k blindly, or checking relevance one document at a time, **one LLM call scores all of them together** — the same "batch it, don't loop it" principle used for [listwise reranking](advanced-rag-post-retrieval.md#llm-based-listwise-reranking).
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/corrective-rag/corrective_rag_docs.py:evaluator"
+--8<-- "snippets/rag-cookbook/corrective-rag/corrective_rag_docs.py:evaluator"
 ```
 
 **Real scores, three different questions, same retrieval step:**
@@ -44,7 +44,7 @@ The thresholds are simple — `max >= 4` is `Correct`, `max <= 2` is `Incorrect`
 A chunk can score well overall and still contain sentences that don't actually help — the retrieved 500-character chunk on the Adam optimizer question, for instance, also has a sentence about the learning-rate schedule that's adjacent but not what was asked. Refinement splits every chunk into sentence-level "knowledge strips," re-scores each one individually, and keeps only the strips that clear the bar on their own.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/corrective-rag/corrective_rag_docs.py:refine"
+--8<-- "snippets/rag-cookbook/corrective-rag/corrective_rag_docs.py:refine"
 ```
 
 For the optimizer question, this is the path that ran, and the final answer came back fully grounded in the refined internal text: *"they used the Adam optimizer for training, with β1 = 0.9, β2 = 0.98, ϵ = 10^-9... They also employed a custom learning rate schedule..."* — no web search needed, because the internal corpus genuinely had the answer.
@@ -54,7 +54,7 @@ For the optimizer question, this is the path that ran, and the final answer came
 When the evaluator can't find anything worth keeping, refining bad chunks further wouldn't help — there's nothing there to refine. The corrective action is to stop trusting internal retrieval for this query entirely, rewrite the question into a short, keyword-style query the way a person would actually type it into a search engine, and fetch real external results.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/corrective-rag/corrective_rag_docs.py:websearch"
+--8<-- "snippets/rag-cookbook/corrective-rag/corrective_rag_docs.py:websearch"
 ```
 
 **Real, live trace for *"What is the current stock price of Nvidia?"*** — a question the 2017 Transformer paper obviously has no way to answer:
@@ -100,7 +100,7 @@ The internal, refined strips supplied the paper's own claimed significance; the 
 ### 3. Generate — same call, regardless of branch
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/corrective-rag/corrective_rag_docs.py:pipeline"
+--8<-- "snippets/rag-cookbook/corrective-rag/corrective_rag_docs.py:pipeline"
 ```
 
 Whichever branch ran, generation itself is the same single call over whatever context that branch produced — internal strips, web results, or both. The branching logic is entirely upstream of generation, which is what keeps this at "one expensive call regardless of verdict," not three different generation paths to maintain.

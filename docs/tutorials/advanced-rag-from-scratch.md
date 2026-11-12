@@ -2,7 +2,7 @@
 
 Naive RAG treats every query the same way. The [pre-retrieval](../advanced-rag-pre-retrieval.md) and [post-retrieval](../advanced-rag-post-retrieval.md) pages each measured their techniques individually and found the same pattern over and over: a technique that fixes one specific failure mode does nothing — or actively hurts — on a query that doesn't have that failure mode. This tutorial builds the natural next step: an LLM **router** that looks at each query first, decides what (if anything) is wrong with it, and applies only the matching fix before retrieval — then reranks the result.
 
-The code lives in [`rag-cookbook/adaptive-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/main/adaptive-rag); every block below is pulled live from those exact files at build time.
+The code lives in [`rag-cookbook/adaptive-rag/`](https://github.com/DhruvMakwana/rag-cookbook/tree/acce4804f210bf5f25918165222774d1c3cb43dc/adaptive-rag); the examples below come from a local snapshot of that commit.
 
 !!! note "Read these first"
     This tutorial assumes you've read [Advanced RAG — Pre-retrieval](../advanced-rag-pre-retrieval.md) and [Advanced RAG — Post-retrieval](../advanced-rag-post-retrieval.md) — it reuses their techniques and their measured scenarios directly, and doesn't re-explain how each one works internally.
@@ -38,7 +38,7 @@ pip install -r requirements.txt
 ```
 
 ```
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/adaptive-rag/requirements.txt"
+--8<-- "snippets/rag-cookbook/adaptive-rag/requirements.txt"
 ```
 
 ## 2. Configure your LLM
@@ -52,7 +52,7 @@ Every stage of this pipeline that isn't pure vector math makes an LLM call — t
 ## 3. The router
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/adaptive-rag/adaptive_rag_docs.py:router"
+--8<-- "snippets/rag-cookbook/adaptive-rag/adaptive_rag_docs.py:router"
 ```
 
 One LLM call classifies the query into exactly one of 5 categories, each with a one-line example baked directly into the prompt. That's not decoration — an earlier version of this prompt used definitions alone (no examples), and it confused `CLEAR` with `NEEDS_CONTEXT` and `VAGUE` with `BROAD` on the very queries meant to demonstrate each category. Adding one concrete example per category fixed all of it: 5/5 correct, stable across repeated runs, and correctly generalizing to novel queries never shown in the prompt (tested separately — a colloquially-phrased "why not just make it bigger" question still correctly routes to `VAGUE`, a genuinely open-ended "why is this more interpretable" question still routes to `BROAD`).
@@ -62,7 +62,7 @@ The category comes back wrapped in `<category>` tags — the same pattern used f
 ## 4. The full pipeline
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/adaptive-rag/adaptive_rag_docs.py:pipeline"
+--8<-- "snippets/rag-cookbook/adaptive-rag/adaptive_rag_docs.py:pipeline"
 ```
 
 Route, apply the matching pre-retrieval technique, rerank. Two design decisions in this function only became visible once the *whole* pipeline was tested end-to-end — neither the pre-retrieval page nor the post-retrieval page had any reason to surface them, because each tested its own technique's own top-k directly, with no second stage stacked on top:

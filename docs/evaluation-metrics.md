@@ -30,11 +30,11 @@ All five metrics below need the same input: for a given query, a ranked list of 
 The standard 8-question eval set used throughout this site carries a `keyword` field — a substring that only appears on the page(s) that actually answer that question. That's enough to build a real, verifiable relevance set per query, rather than hand-labeling "relevant" pages by eye:
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/evaluation-metrics/evaluation_metrics_docs.py:build_relevance_from_keyword"
+--8<-- "snippets/rag-cookbook/evaluation-metrics/evaluation_metrics_docs.py:build_relevance_from_keyword"
 ```
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/evaluation-metrics/evaluation_metrics_docs.py:retrieval_metrics"
+--8<-- "snippets/rag-cookbook/evaluation-metrics/evaluation_metrics_docs.py:retrieval_metrics"
 ```
 
 Measured across the standard 8-question eval set, dense retrieval at k=3:
@@ -63,7 +63,7 @@ These predate LLM-based evaluation, from machine translation and summarization r
 **Embedding-based semantic similarity.** Embed both the generated answer and the reference, then compute cosine similarity — captures meaning-level closeness rather than surface wording, at the cost of not directly checking whether the answer is actually grounded in retrieved context.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/evaluation-metrics/evaluation_metrics_docs.py:generation_metrics"
+--8<-- "snippets/rag-cookbook/evaluation-metrics/evaluation_metrics_docs.py:generation_metrics"
 ```
 
 Measured against 8 real answers generated locally (no paid API):
@@ -136,7 +136,7 @@ In practice, human evaluation is expensive enough that it's usually reserved for
       "explanations": [
         "This page's ground truth isn't LLM-judged at all -- it's a much simpler, real substring/keyword match: a chunk counts as relevant if it contains the keyword known to answer that specific question. That LLM-judged approach is closer to how RAGAS's Context Precision works (covered on the RAGAS page), not what this page's Precision@k/Recall@k ground truth uses.",
         "Correct. This page's own build_relevance_set function does exactly this -- a chunk counts as relevant if it actually contains the keyword that answers the question, which is a real, checkable criterion rather than a hand-picked label.",
-        "Treating every chunk as relevant would make Precision@k collapse toward k/corpus-size for every query regardless of what was actually retrieved -- it removes exactly the signal (which chunks are truly relevant) the metric needs to be informative.",
+        "Treating every chunk as relevant would make Precision@k equal 1 for every query that returns k results, regardless of what was retrieved -- it removes exactly the signal (which chunks are truly relevant) the metric needs to be informative.",
         "Using the retrieval system's own top-1 result as ground truth would make the retrieval system trivially 'perfect' at evaluating itself -- the relevance set needs to be independent of the system being measured."
       ]
     },

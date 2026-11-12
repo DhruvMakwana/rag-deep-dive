@@ -75,8 +75,6 @@ markdown_extensions:
   - pymdownx.snippets:
       base_path: ["."]
       check_paths: true
-      url_download: true
-      url_timeout: 10
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg

@@ -27,7 +27,7 @@ Naive RAG embeds the raw query, as-is, and searches. Every technique on this pag
 **The problem it targets:** users phrase queries badly — too short, too vague, colloquial, or using different words than the source document ever uses ("how do I get my money back" vs. a document that only ever says "refund"). Query rewriting passes the raw query through an LLM before retrieval, asking it to produce a clearer, more specific version — the rewritten query gets embedded and searched, not the original.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:rewrite"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:rewrite"
 ```
 
 **Input → output, from an actual run:**
@@ -66,7 +66,7 @@ Different from rewriting — rewriting produces *one* improved query; multi-quer
 **Merging with RRF (Reciprocal Rank Fusion):** each chunk's fused score is `Σ 1/(k + rank)`, summed across every query variation's ranked list it appears in (`k` is a damping constant, typically 60). A chunk that ranks well across *multiple* phrasings outscores one that only a single phrasing liked — the intuition being that agreement across independent queries is a stronger relevance signal than one strong vote.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:multi_query"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:multi_query"
 ```
 
 **Input → output, from an actual run where multi-query found what naive missed:**
@@ -110,7 +110,7 @@ RRF-fused retrieval at k=5, rank 2 (right section, found via paraphrase #2):
 The problem: a question is short and interrogative ("What optimizer did they use?"); the actual answer in the document reads as a statement ("We used the Adam optimizer..."). Embedding models sometimes struggle because a question's embedding isn't always closest in vector space to its answer's embedding, even when topically related. HyDE's fix: ask an LLM to write a plausible hypothetical answer — even if it's factually wrong — and embed *that* instead of the raw question. The hallucination is a scaffold, discarded after retrieval; only the real retrieved chunks make it into the final answer.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:hyde"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:hyde"
 ```
 
 **Input → output, from an actual run:**
@@ -155,7 +155,7 @@ Embedding that refusal text — which shares no real vocabulary with the paper's
 Many questions are specific instances of a broader principle; retrieving narrowly for the specific question can miss the general background a reasoning-heavy answer actually needs. Step-back prompting asks an LLM to generate a more abstract "step-back" version of the query, retrieves for *both* the general and the specific question, and feeds both sets of context into generation — the only one of these techniques that deliberately broadens scope rather than narrowing or reformulating it.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:step_back"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:step_back"
 ```
 
 **Input → output, from an actual run:**
@@ -182,7 +182,7 @@ already found.
 Naive RAG embeds the whole query as one vector — if that query is actually a **compound question** bundling multiple distinct information needs, a single embedding represents a blurry average of all of them, and retrieval often surfaces chunks partially matching one part while missing the rest entirely. Decomposition detects this and splits the query into independent sub-questions, retrieving separately for each — different in kind from multi-query, which generates paraphrases of the *same* question rather than splitting into genuinely different ones.
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:decompose"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:decompose"
 ```
 
 **Input → output, from an actual run:**
@@ -214,7 +214,7 @@ retrieval pass instead of competing for the same embedding.
 Decomposition splits a compound question upfront, all at once. **IRCoT** (Interleaved Retrieval with Chain-of-Thought) does something more dynamic: generate one reasoning step, use *that step itself* as the next retrieval query, retrieve, and repeat — each hop informed by what's actually been found so far, rather than a fixed plan made before any retrieval has happened. This targets genuinely multi-hop questions where the second lookup depends on what the first one turns up, not just "two unrelated facts asked in one sentence."
 
 ```python
---8<-- "https://raw.githubusercontent.com/DhruvMakwana/rag-cookbook/main/query-transformation/query_transformation_docs.py:ircot"
+--8<-- "snippets/rag-cookbook/query-transformation/query_transformation_docs.py:ircot"
 ```
 
 **Getting this right took two real fixes, not just a clean write-up:** the first version only showed the model its own prior reasoning sentences at each hop, never the actual retrieved chunk text — with no real evidence to look at, the model had no way to judge whether it actually knew enough, and just kept generating near-identical restated queries forever. The fix was mechanical but essential: feed the real retrieved passages back into context at every hop, and add a forced final-synthesis call at the end so the loop always commits to a real answer instead of trailing off in a hedge.

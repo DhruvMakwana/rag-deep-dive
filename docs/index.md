@@ -42,7 +42,7 @@ Picking an architecture is only half the system. These pages cover the decisions
 - [Vector databases](vector-databases.md) — HNSW/IVF/PQ parameters explained from first principles, six real databases tested against the same corpus, and vector-DB choice as a system-design problem with real production case studies
 - [Production considerations](production-considerations.md) — real retry/circuit-breaker code, semantic caching with a measured hit rate, monitoring, and real embedding-throughput scaling numbers
 
-## System design, from real production systems
+## System design, from industry case studies
 
 Eighteen case studies — Notion, Uber, Airbnb, Spotify, GitHub Copilot, LinkedIn, Dropbox, Sourcegraph, Klarna, Perplexity, Shopify, Anthropic's own eval postmortem, EchoLeak, and more — each built from a real, verifiable primary source, not a one-paragraph summary. See the [System Design & Case Studies](case-studies/index.md) section.
 
